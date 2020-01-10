@@ -1,0 +1,3 @@
+KEY_DRIVER_POLLING_INTERVAL = 'polling_interval'
+KEY_DRIVER_HOST = "host"
+KEY_DRIVER_MAPPING = 'mapping'

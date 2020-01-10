@@ -1,0 +1,12 @@
+# GIT IGNORE LIST
+
+# IDE: Eclipse
+.project
+.pydevproject
+.settings
+
+# IDE: IDEA
+.idea
+
+# Tool: Vagrant
+.vagrant
