@@ -8,8 +8,8 @@ from user.weatherlink_live.configuration import create_configuration
 from user.weatherlink_live.service import WllWindService
 from weewx.drivers import AbstractDevice
 
-DRIVER_NAME = "WeatherlinkLive"
-DRIVER_VERSION = "1.0.0-rc1"
+DRIVER_NAME = "WeatherLinkLive"
+DRIVER_VERSION = "1.0.0-rc2"
 
 log = logging.getLogger(__name__)
 
