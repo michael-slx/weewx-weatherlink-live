@@ -53,7 +53,8 @@ class WllPollHost(DataHost):
         if polling_interval < 10:
             raise ValueError("Polling interval shouldn't be less than 10 )got: %d)" % polling_interval)
 
-        self._timer = threading.Timer(interval=self.polling_interval * random.random(), function=self._reschedule)
+        self._timer = threading.Timer(interval=self.polling_interval + self.polling_interval * random.random(),
+                                      function=self._reschedule)
         self._timer.start()
 
     def _poll(self):
@@ -92,10 +93,19 @@ class WLLBroadcastHost(DataHost, PacketCallback):
         self._timer = None
         self._port = 22222
 
-        self._timer = threading.Timer(interval=10 * random.random(), function=self._reschedule)
-        self._timer.start()
+        self._reschedule()
 
     def _reschedule(self):
+        duration, port = self._reactivate_broadcast()
+        reschedule_duration = self._reschedule_duration(duration)
+
+        if self._timer is not None:
+            self._timer.cancel()
+        log.debug("Next broadcast activation in %f secs" % reschedule_duration)
+        self._timer = threading.Timer(interval=reschedule_duration, function=self._reschedule)
+        self._timer.start()
+
+    def _reactivate_broadcast(self):
         log.debug("Re-requesting UDP broadcast")
         packet = davis_http.start_broadcast(self.host, 300)
         duration = packet.duration
@@ -109,14 +119,7 @@ class WLLBroadcastHost(DataHost, PacketCallback):
         self._stop_broadcast_reception()
         self._start_broadcast_reception()
 
-        if self._timer is not None:
-            self._timer.cancel()
-
-        reschedule_duration = self._reschedule_duration(duration)
-        log.debug("Next broadcast reschedule in %d seconds" % reschedule_duration)
-
-        self._timer = threading.Timer(reschedule_duration, function=self._reschedule)
-        self._timer.start()
+        return duration, port
 
     @staticmethod
     def _reschedule_duration(actual_duration: int) -> int:
