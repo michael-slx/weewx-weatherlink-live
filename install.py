@@ -19,7 +19,7 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
             author_email="floss@schantl-lx.at",
             config={
                 'Station': {
-                    'station_type': 'WeatherlinkLive'
+                    'station_type': 'WeatherLinkLive'
                 },
                 'WeatherLinkLive': {
                     'driver': 'user.weatherlink_live',
