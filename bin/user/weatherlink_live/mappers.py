@@ -209,6 +209,8 @@ class RainMapping(AbstractMapping):
             rain_amount = current_daily_rain - self.last_daily_rain
             self._set_record_entry(record, target_amount, rain_amount)
 
+        self.last_daily_rain = current_daily_rain
+
     def rain_bucket_factor(self, packet) -> float:
         rain_bucket_size = packet.get_observation(KEY_RAIN_SIZE, DataStructureType.ISS, self.tx_id)
         try:
