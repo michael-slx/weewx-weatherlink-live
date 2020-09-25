@@ -31,7 +31,7 @@ from user.weatherlink_live.service import WllWindService
 from weewx.drivers import AbstractDevice
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.0-rc3"
+DRIVER_VERSION = "1.0.0"
 
 log = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ schema = {
     'table': wview_extended.table + [(field, "REAL") for field in _temperature_fields],
     'day_summaries': wview_extended.day_summaries + [(field, "SCALAR") for field in _temperature_fields]
 }
-weewx.units.obs_group_dict + dict([(observation, "group_temperature") for observation in _temperature_fields])
+weewx.units.obs_group_dict.update(dict([(observation, "group_temperature") for observation in _temperature_fields]))
 
 
 def loader(config_dict, engine):
