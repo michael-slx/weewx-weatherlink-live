@@ -25,7 +25,8 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
                     'driver': 'user.weatherlink_live',
                     'host': 'weatherlink',
                     'polling_interval': '10',
-                    'mapping': ''
+                    'mapping': ['th:1', 'th_indoor', 'baro', 'rain:1', 'wind:1', 'solar:1', 'uv:1', 'thw:1', 'thsw:1',
+                                'windchill:1']
                 }
             },
             files=[
