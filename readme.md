@@ -2,7 +2,12 @@
 
 This is a driver allowing the [WeeWX](http://www.weewx.com/) weather software to retrieve data from the [Davis WeatherLink Live](https://www.davisinstruments.com/weatherlinklive/) data logger (WLL). This driver is fully compatible with the WLL's local API, allowing an update frequency of up to 2.5 seconds.
 
-Unlike other drivers, mixing-and-matching many sensors transmitting on any id is fully supported.. E.g. an ISS transmitting temperature, humidity and rain on `TX1` and a senator transmitter with wind, solar and UV on `TX2`.
+Unlike other drivers, mixing many sensors transmitting on any id is fully supported.. E.g. an ISS transmitting temperature, humidity and rain on id `1` and a sensor transmitter with wind, solar and UV on id `2`.
+
+Unfortunately the WeatherLink Live currently does not provide a local API to access historic data.
+An API is available for WeatherLink subscribers. This driver does however not support this interface.
+
+This drives requires **WeeWX 4** and **Python 3**.
 
 <!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
@@ -27,9 +32,9 @@ Unlike other drivers, mixing-and-matching many sensors transmitting on any id is
 
 ## Getting started
 
-_Working Weewx installation is assumed_
+_Working WeeWX 4 installation using Python 3.8 is assumed_
 
-1. **Download release archive** or clone repository with Git
+1. **Download release package** or clone repository with Git
 2. **Install extension** using `wee_extension` utility
 3. **Set `host` and `mapping`** options
 4. Configure WeeWX to **use this driver (`user.weatherlink_live`)**
@@ -85,6 +90,7 @@ If you wish to store all data measured by your Davis weather station, you may ne
 #### `polling_interval`
 
 **Minimum:** 10 seconds
+
 **Default:** 10 seconds
 
 The interval in seconds or fractions thereof to wait between polling the WLL.
@@ -92,6 +98,7 @@ The interval in seconds or fractions thereof to wait between polling the WLL.
 #### `host`
 
 **Default:** _none_
+
 **Required**
 
 Host name or IP address of the WLL. Do not specify an URL or a port; just the host name is enough.
