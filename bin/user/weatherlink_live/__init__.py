@@ -1,17 +1,72 @@
+# Copyright © 2020 Michael Schantl and contributors
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """
 WeeWX driver for WeatherLink Live and AirLink
 """
 import logging
 
+import weewx.units
+from schemas import wview_extended
 from user.weatherlink_live import davis_http, data_host
 from user.weatherlink_live.configuration import create_configuration
 from user.weatherlink_live.service import WllWindService
 from weewx.drivers import AbstractDevice
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.0-rc3"
+DRIVER_VERSION = "1.0.0"
 
 log = logging.getLogger(__name__)
+
+_temperature_fields = ["dewpoint2",
+                       "dewpoint3",
+                       "dewpoint4",
+                       "dewpoint5",
+                       "dewpoint6",
+                       "dewpoint7",
+                       "dewpoint8",
+                       "heatindex2",
+                       "heatindex3",
+                       "heatindex4",
+                       "heatindex5",
+                       "heatindex6",
+                       "heatindex7",
+                       "heatindex8",
+                       "wetbulb",
+                       "wetbulb1",
+                       "wetbulb2",
+                       "wetbulb3",
+                       "wetbulb4",
+                       "wetbulb5",
+                       "wetbulb6",
+                       "wetbulb7",
+                       "wetbulb8",
+                       "thw",
+                       "thsw",
+                       "inHeatindex"]
+
+schema = {
+    'table': wview_extended.table + [(field, "REAL") for field in _temperature_fields],
+    'day_summaries': wview_extended.day_summaries + [(field, "SCALAR") for field in _temperature_fields]
+}
+weewx.units.obs_group_dict.update(dict([(observation, "group_temperature") for observation in _temperature_fields]))
 
 
 def loader(config_dict, engine):
