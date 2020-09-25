@@ -89,16 +89,14 @@ If you wish to store all data measured by your Davis weather station, you may ne
 
 #### `polling_interval`
 
-**Minimum:** 10 seconds
-
+**Minimum:** 10 seconds<br />
 **Default:** 10 seconds
 
 The interval in seconds or fractions thereof to wait between polling the WLL.
 
 #### `host`
 
-**Default:** _none_
-
+**Default:** _none_<br />
 **Required**
 
 Host name or IP address of the WLL. Do not specify an URL or a port; just the host name is enough.
@@ -107,7 +105,7 @@ Host name or IP address of the WLL. Do not specify an URL or a port; just the ho
 
 **Default:** _empty list_
 
-List of sensors and their ids to import into WeeWX. Each mapping definition consists of the name, the senses id and the sensor number separated by a colon `:`.
+List of sensors and their ids to import into WeeWX. Each mapping definition consists of the name, the sensor id and the sensor number separated by a colon `:`.
 
 ```
 [Name](:[SensorId](:[SensorNumber]))
@@ -178,7 +176,7 @@ Any contributions to this project are absolutely welcome: issues, documentation 
 
 ## Legal
 
-This project is licensed under the MIT license. See the `LICENSE.md` file for a copy of the license.
+This project is licensed under the MIT license. See the `LICENSE` file for a copy of the license.
 
 While this project uses the WeatherLink Live local API, it is neither supported nor endorsed by Davis Instruments. The same also goes for WeeWX.
 
