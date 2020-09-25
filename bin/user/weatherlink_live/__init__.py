@@ -3,6 +3,8 @@ WeeWX driver for WeatherLink Live and AirLink
 """
 import logging
 
+import weewx.units
+from schemas import wview_extended
 from user.weatherlink_live import davis_http, data_host
 from user.weatherlink_live.configuration import create_configuration
 from user.weatherlink_live.service import WllWindService
@@ -12,6 +14,39 @@ DRIVER_NAME = "WeatherLinkLive"
 DRIVER_VERSION = "1.0.0-rc3"
 
 log = logging.getLogger(__name__)
+
+_temperature_fields = ["dewpoint2",
+                       "dewpoint3",
+                       "dewpoint4",
+                       "dewpoint5",
+                       "dewpoint6",
+                       "dewpoint7",
+                       "dewpoint8",
+                       "heatindex2",
+                       "heatindex3",
+                       "heatindex4",
+                       "heatindex5",
+                       "heatindex6",
+                       "heatindex7",
+                       "heatindex8",
+                       "wetbulb",
+                       "wetbulb1",
+                       "wetbulb2",
+                       "wetbulb3",
+                       "wetbulb4",
+                       "wetbulb5",
+                       "wetbulb6",
+                       "wetbulb7",
+                       "wetbulb8",
+                       "thw",
+                       "thsw",
+                       "inHeatindex"]
+
+schema = {
+    'table': wview_extended.table + [(field, "REAL") for field in _temperature_fields],
+    'day_summaries': wview_extended.day_summaries + [(field, "SCALAR") for field in _temperature_fields]
+}
+weewx.units.obs_group_dict + dict([(observation, "group_temperature") for observation in _temperature_fields])
 
 
 def loader(config_dict, engine):
