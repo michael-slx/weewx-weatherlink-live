@@ -4,6 +4,27 @@ This is a driver allowing the [WeeWX](http://www.weewx.com/) weather software to
 
 Unlike other drivers, mixing-and-matching many sensors transmitting on any id is fully supported.. E.g. an ISS transmitting temperature, humidity and rain on `TX1` and a senator transmitter with wind, solar and UV on `TX2`.
 
+<!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+
+- [Getting started](#getting-started)
+- [Detailed instructions](#detailed-instructions)
+- [Configuration](#configuration)
+	- [Annotated example configuration](#annotated-example-configuration)
+	- [Options reference](#options-reference)
+		- [`polling_interval`](#pollinginterval)
+		- [`host`](#host)
+		- [`mapping`](#mapping)
+	- [Available mappings](#available-mappings)
+	- [Mapping examples](#mapping-examples)
+		- [Plain Vantage2 Pro Plus](#plain-vantage2-pro-plus)
+		- [Vantage2 Pro Plus with additional anemometer transmitter](#vantage2-pro-plus-with-additional-anemometer-transmitter)
+		- [Vantage2 Pro Plus with separate transmitter for wind, solar and UV](#vantage2-pro-plus-with-separate-transmitter-for-wind-solar-and-uv)
+		- [Vantage2 Pro Plus with soil/leaf station](#vantage2-pro-plus-with-soilleaf-station)
+- [Contribution](#contribution)
+- [Legal](#legal)
+
+<!-- /TOC -->
+
 ## Getting started
 
 _Working Weewx installation is assumed_
@@ -32,8 +53,6 @@ If you wish to store all data measured by your Davis weather station, you may ne
     # in this file with a 'driver' parameter indicating the driver to be used.
     station_type = WeatherLinkLive
 
-##############################################################################
-
 # Section for configuring the WeatherLink Live driver
 [WeatherLinkLive]
 
@@ -49,8 +68,6 @@ If you wish to store all data measured by your Davis weather station, you may ne
 
     # Mapping of transmitter ids
     mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1, windchill:1
-
-##############################################################################
 
 [DataBindings]
 
@@ -69,8 +86,6 @@ If you wish to store all data measured by your Davis weather station, you may ne
 
 **Minimum:** 10 seconds
 **Default:** 10 seconds
-
-
 
 The interval in seconds or fractions thereof to wait between polling the WLL.
 
