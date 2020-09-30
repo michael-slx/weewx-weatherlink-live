@@ -105,7 +105,7 @@ class AbstractMapping(object):
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         pass
 
-    def _set_record_entry(self, record: dict, key: str, value: str = None):
+    def _set_record_entry(self, record: dict, key: str, value: float = None):
         record.update({key: value})
         self._log_mapping_success(key, value)
 
