@@ -182,8 +182,11 @@ class WindGustMapping(AbstractMapping):
 class RainMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
         super().__init__({
-            'rain_amount': targets.RAIN_AMOUNT,
-            'rain_rate': targets.RAIN_RATE
+            'amount': targets.RAIN_AMOUNT,
+            'rate': targets.RAIN_RATE,
+            'count': targets.RAIN_COUNT,
+            'count_rate': targets.RAIN_COUNT_RATE,
+            'size': targets.RAIN_SIZE,
         }, mapping_opts, used_map_targets, log_success, log_error)
 
         # 0: Reserved, 1: 0.01", 2: 0.2 mm, 3:  0.1 mm, 4: 0.001"
@@ -196,40 +199,42 @@ class RainMapping(AbstractMapping):
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
 
-        self.last_daily_rain = None
+        self.last_daily_rain_count = None
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         if packet.data_source != PacketSource.WEATHER_PUSH:
             self._log_mapping_notResponsible("Not a broadcast packet")
             return
 
-        target_amount = self.targets['rain_amount']
-        target_rate = self.targets['rain_rate']
+        target_amount = self.targets['amount']
+        target_rate = self.targets['rate']
+        target_count = self.targets['count']
+        target_rate_count = self.targets['count_rate']
+        target_size = self.targets['size']
 
         rain_bucket_factor = self.rain_bucket_factor(packet)
+        self._set_record_entry(record, target_size, rain_bucket_factor)
 
-        daily_rain_bucket_count = packet.get_observation(KEY_RAIN_AMOUNT_DAILY, DataStructureType.ISS, self.tx_id)
         rain_rate_count = packet.get_observation(KEY_RAIN_RATE, DataStructureType.ISS, self.tx_id)
-
+        self._set_record_entry(record, target_rate_count, rain_rate_count)
         self._set_record_entry(record, target_rate, rain_rate_count * rain_bucket_factor)
 
-        current_daily_rain = daily_rain_bucket_count * rain_bucket_factor
-
-        if self.last_daily_rain is None:
+        current_daily_rain_count = packet.get_observation(KEY_RAIN_AMOUNT_DAILY, DataStructureType.ISS, self.tx_id)
+        if self.last_daily_rain_count is None:
             self._log("First daily rain value", logging.INFO)
-            self.last_daily_rain = current_daily_rain
-            return
 
-        elif self.last_daily_rain > current_daily_rain:
-            self._log("Last daily rain (%.03f) larger than current (%.03f). Probably reset" % (
-                self.last_daily_rain, current_daily_rain), logging.INFO)
-            self._set_record_entry(record, target_amount, current_daily_rain)  # either 0 or amount in the meantime
+        elif self.last_daily_rain_count > current_daily_rain_count:
+            self._log("Last daily rain (%d) larger than current (%d). Probably reset" % (
+                self.last_daily_rain_count, current_daily_rain_count), logging.INFO)
+            self._set_record_entry(record, target_count, current_daily_rain_count)
+            self._set_record_entry(record, target_amount, current_daily_rain_count * rain_bucket_factor)
 
         else:
-            rain_amount = current_daily_rain - self.last_daily_rain
-            self._set_record_entry(record, target_amount, rain_amount)
+            count_diff = self.last_daily_rain_count - current_daily_rain_count
+            self._set_record_entry(record, target_count, count_diff)
+            self._set_record_entry(record, target_amount, count_diff * rain_bucket_factor)
 
-        self.last_daily_rain = current_daily_rain
+        self.last_daily_rain_count = current_daily_rain_count
 
     def rain_bucket_factor(self, packet) -> float:
         rain_bucket_size = packet.get_observation(KEY_RAIN_SIZE, DataStructureType.ISS, self.tx_id)
