@@ -33,7 +33,7 @@ from weewx.drivers import AbstractDevice
 from weewx.engine import InitializationError
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.0"
+DRIVER_VERSION = "1.0.1"
 
 log = logging.getLogger(__name__)
 
