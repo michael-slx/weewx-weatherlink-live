@@ -91,9 +91,13 @@ class WllWindService(StdService):
             max_gust_speed = self.max_loop_gust.get(k_gust_speed, 0.0)
             max_gust_dir = self.max_loop_gust.get(k_gust_dir, None)
 
+            if current_speed is None:
+                self._log_failure("Current wind speed is set but N/A. Skipping calculation", logging.INFO)
+                continue
+
             if max_gust_dir is None or current_speed >= max_gust_speed:
                 self._log_success("New wind vector %.02f:%s larger than %.02f:%s" % (
-                current_speed, current_dir, max_gust_speed, max_gust_dir))
+                    current_speed, current_dir, max_gust_speed, max_gust_dir))
                 self.max_loop_gust[k_gust_speed] = current_speed
                 self.max_loop_gust[k_gust_dir] = current_dir
 
