@@ -2,7 +2,12 @@
 
 This is a driver allowing the [WeeWX](http://www.weewx.com/) weather software to retrieve data from the [Davis WeatherLink Live](https://www.davisinstruments.com/weatherlinklive/) data logger (WLL). This driver is fully compatible with the WLL's local API, allowing an update frequency of up to 2.5 seconds.
 
-Unlike other drivers, mixing-and-matching many sensors transmitting on any id is fully supported.. E.g. an ISS transmitting temperature, humidity and rain on `TX1` and a senator transmitter with wind, solar and UV on `TX2`.
+Unlike other drivers, mixing many sensors transmitting on any id is fully supported.. E.g. an ISS transmitting temperature, humidity and rain on id `1` and a sensor transmitter with wind, solar and UV on id `2`.
+
+Unfortunately the WeatherLink Live currently does not provide a local API to access historic data.
+An API is available for WeatherLink subscribers. This driver does however not support this interface.
+
+This drives requires **WeeWX 4** and **Python 3**.
 
 <!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
@@ -27,9 +32,9 @@ Unlike other drivers, mixing-and-matching many sensors transmitting on any id is
 
 ## Getting started
 
-_Working Weewx installation is assumed_
+_Working WeeWX 4 installation using Python 3.8 is assumed_
 
-1. **Download release archive** or clone repository with Git
+1. **Download release package** or clone repository with Git
 2. **Install extension** using `wee_extension` utility
 3. **Set `host` and `mapping`** options
 4. Configure WeeWX to **use this driver (`user.weatherlink_live`)**
@@ -40,7 +45,9 @@ _Working Weewx installation is assumed_
 
 Firstly, download the latest release package and install it using the `wee_extension` utility. Then configure WeeWX to use this driver and set the required options `host` and `mapping`.
 
-If you wish to store all data measured by your Davis weather station, you may need to switch to the database schema provided by this extension (`user.weatherlink_live.schema`). See the [official WeeWX customization guide](http://www.weewx.com/docs/customizing.htm#archive_database) for additional information. The units of all additionally defined observations are converted as specified in your configuration and skin.
+If you wish to store all data measured by your Davis weather station, you may need to switch to the database schema provided by this extension (`user.weatherlink_live.schema`). See the [official WeeWX customization guide](http://www.weewx.com/docs/customizing.htm#archive_database) for additional information.
+
+The units of all additionally defined observations are converted as specified in your configuration and skin. In addition to those specified by WeeWX, the driver defines the unit group `group_rate` currently only consisting of one unit: `per_hour`.
 
 ## Configuration
 
@@ -84,14 +91,14 @@ If you wish to store all data measured by your Davis weather station, you may ne
 
 #### `polling_interval`
 
-**Minimum:** 10 seconds
+**Minimum:** 10 seconds<br />
 **Default:** 10 seconds
 
 The interval in seconds or fractions thereof to wait between polling the WLL.
 
 #### `host`
 
-**Default:** _none_
+**Default:** _none_<br />
 **Required**
 
 Host name or IP address of the WLL. Do not specify an URL or a port; just the host name is enough.
@@ -100,7 +107,7 @@ Host name or IP address of the WLL. Do not specify an URL or a port; just the ho
 
 **Default:** _empty list_
 
-List of sensors and their ids to import into WeeWX. Each mapping definition consists of the name, the senses id and the sensor number separated by a colon `:`.
+List of sensors and their ids to import into WeeWX. Each mapping definition consists of the name, the sensor id and the sensor number separated by a colon `:`.
 
 ```
 [Name](:[SensorId](:[SensorNumber]))
@@ -112,8 +119,8 @@ List of sensors and their ids to import into WeeWX. Each mapping definition cons
 | ---------------------------------------------- | ------------------------ | ------------------------------------------------------------ |
 | **`t`** (temperature)                          | Sensor id                | Maps outside temperature (no humidity)                       |
 | **`th`** (temperature, humidity)               | Sensor id                | Maps outside temperature, humidity, heat index, dew point and wet bulb temperature |
-| **`wind`**                                     | Sensor id                | Maps wind speed and direction to gust speed and directory for LOOP packets<br />In ARCHIVE records the maximum gust during the archive period will be set for the wind observations. The ARCHIVE gust observations are set by averaging the LOOP gust observations. |
-| **`rain`**                                     | Sensor id                | Maps rain amount and rate<br />Differential rain amount is calculated from daily rain measurement. |
+| **`wind`**                                     | Sensor id                | Maps wind speed and direction to LOOP speed and direction.<br />An additional service then finds the maximum wind speed during the archive interval and assigns this speed and the respective direction to the gust observations. |
+| **`rain`**                                     | Sensor id                | Maps rain amount and rate as well as count of spoon trips, rate of spoon trips and size of spoon.<br />Differential rain amount is calculated from daily rain measurement. |
 | **`solar`** (solar radiation)                  | Sensor id                | Maps solar radiation                                         |
 | **`uv`** (UV index)                            | Sensor id                | Maps UV index                                                |
 | **`windchill`** (wind chill)                   | Sensor id                | Maps wind chill as reported by the respective transmitter.<br />_**Note:** Only available when thermometer and anemometer are connected to the same transmitter._ |
@@ -171,7 +178,7 @@ Any contributions to this project are absolutely welcome: issues, documentation 
 
 ## Legal
 
-This project is licensed under the MIT license. See the `LICENSE.md` file for a copy of the license.
+This project is licensed under the MIT license. See the `LICENSE` file for a copy of the license.
 
 While this project uses the WeatherLink Live local API, it is neither supported nor endorsed by Davis Instruments. The same also goes for WeeWX.
 
