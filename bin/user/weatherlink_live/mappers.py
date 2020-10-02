@@ -24,9 +24,8 @@ Mappings of API to observations
 import logging
 from typing import Dict, List, Optional
 
-from user.weatherlink_live import targets
 from user.weatherlink_live.packets import NotInPacket, DavisConditionsPacket
-from user.weatherlink_live.static import PacketSource
+from user.weatherlink_live.static import PacketSource, targets
 from user.weatherlink_live.static.packets import DataStructureType, KEY_TEMPERATURE, KEY_HUMIDITY, KEY_DEW_POINT, \
     KEY_HEAT_INDEX, KEY_WET_BULB, KEY_WIND_DIR, KEY_RAIN_AMOUNT_DAILY, KEY_RAIN_SIZE, KEY_RAIN_RATE, \
     KEY_SOLAR_RADIATION, KEY_UV_INDEX, KEY_WIND_CHILL, KEY_THW_INDEX, KEY_THSW_INDEX, KEY_SOIL_MOISTURE, \

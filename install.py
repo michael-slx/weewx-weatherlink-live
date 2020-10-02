@@ -60,13 +60,13 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
                     'bin/user/weatherlink_live/mappers.py',
                     'bin/user/weatherlink_live/packets.py',
                     'bin/user/weatherlink_live/service.py',
-                    'bin/user/weatherlink_live/targets.py',
                     'bin/user/weatherlink_live/utils.py',
                 ]),
                 ('bin/user/weatherlink_live/static', [
                     'bin/user/weatherlink_live/static/__init__.py',
                     'bin/user/weatherlink_live/static/config.py',
                     'bin/user/weatherlink_live/static/packets.py',
+                    'bin/user/weatherlink_live/static/targets.py',
                 ]),
             ]
         )
