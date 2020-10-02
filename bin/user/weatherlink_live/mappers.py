@@ -22,7 +22,7 @@
 Mappings of API to observations
 """
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from user.weatherlink_live import targets
 from user.weatherlink_live.packets import NotInPacket, DavisConditionsPacket
@@ -217,9 +217,13 @@ class RainMapping(AbstractMapping):
 
         rain_rate_count = packet.get_observation(KEY_RAIN_RATE, DataStructureType.ISS, self.tx_id)
         self._set_record_entry(record, target_rate_count, rain_rate_count)
-        self._set_record_entry(record, target_rate, rain_rate_count * rain_bucket_factor)
+        self._set_record_entry(record, target_rate, self._multiply(rain_rate_count, rain_bucket_factor))
 
         current_daily_rain_count = packet.get_observation(KEY_RAIN_AMOUNT_DAILY, DataStructureType.ISS, self.tx_id)
+        if current_daily_rain_count is None:
+            self._log("Daily rain count not in packet. Skipping diff calculation")
+            return
+
         if self.last_daily_rain_count is None:
             self._log("First daily rain value", logging.INFO)
 
@@ -227,17 +231,26 @@ class RainMapping(AbstractMapping):
             self._log("Last daily rain (%d) larger than current (%d). Probably reset" % (
                 self.last_daily_rain_count, current_daily_rain_count), logging.INFO)
             self._set_record_entry(record, target_count, current_daily_rain_count)
-            self._set_record_entry(record, target_amount, current_daily_rain_count * rain_bucket_factor)
+            self._set_record_entry(record, target_amount, self._multiply(current_daily_rain_count, rain_bucket_factor))
 
         else:
             count_diff = self.last_daily_rain_count - current_daily_rain_count
             self._set_record_entry(record, target_count, count_diff)
-            self._set_record_entry(record, target_amount, count_diff * rain_bucket_factor)
+            self._set_record_entry(record, target_amount, self._multiply(count_diff, rain_bucket_factor))
 
         self.last_daily_rain_count = current_daily_rain_count
 
-    def rain_bucket_factor(self, packet) -> float:
+    @staticmethod
+    def _multiply(a: Optional[float], b: Optional[float]) -> Optional[float]:
+        if a is None or b is None:
+            return None
+        return a * b
+
+    def rain_bucket_factor(self, packet) -> Optional[float]:
         rain_bucket_size = packet.get_observation(KEY_RAIN_SIZE, DataStructureType.ISS, self.tx_id)
+        if rain_bucket_size is None:
+            return None
+
         try:
             return self.rain_bucket_sizes[rain_bucket_size]
         except KeyError as e:
