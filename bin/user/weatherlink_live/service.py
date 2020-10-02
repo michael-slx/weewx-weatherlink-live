@@ -22,13 +22,13 @@ import logging
 from typing import List, Dict
 
 import weewx
-from user.weatherlink_live.mappers import AbstractMapping, WindGustMapping
+from user.weatherlink_live.mappers import AbstractMapping, WindMapping
 from weewx.engine import StdService
 
 log = logging.getLogger(__name__)
 
 
-class WllWindService(StdService):
+class WllWindGustService(StdService):
     """Service for calculating ARCHIVE records from LOOP wind measurements"""
 
     def __init__(self, engine, config_dict, mappers: List[AbstractMapping], log_success: bool = False,
@@ -62,7 +62,7 @@ class WllWindService(StdService):
         log.log(level, "%s: %s" % (type(self).__name__, message))
 
     def _extract_map_sources(self) -> List[Dict[str, str]]:
-        return [mapper.targets for mapper in self.mappers if isinstance(mapper, WindGustMapping)]
+        return [mapper.targets for mapper in self.mappers if isinstance(mapper, WindMapping)]
 
     def _clear(self):
         self._log_success("Clearing max gust values")
@@ -91,9 +91,13 @@ class WllWindService(StdService):
             max_gust_speed = self.max_loop_gust.get(k_gust_speed, 0.0)
             max_gust_dir = self.max_loop_gust.get(k_gust_dir, None)
 
+            if current_speed is None:
+                self._log_failure("Current wind speed is set but N/A. Skipping calculation", logging.INFO)
+                continue
+
             if max_gust_dir is None or current_speed >= max_gust_speed:
                 self._log_success("New wind vector %.02f:%s larger than %.02f:%s" % (
-                current_speed, current_dir, max_gust_speed, max_gust_dir))
+                    current_speed, current_dir, max_gust_speed, max_gust_dir))
                 self.max_loop_gust[k_gust_speed] = current_speed
                 self.max_loop_gust[k_gust_dir] = current_dir
 

@@ -27,11 +27,13 @@ import weewx.units
 from schemas import wview_extended
 from user.weatherlink_live import davis_http, data_host
 from user.weatherlink_live.configuration import create_configuration
-from user.weatherlink_live.service import WllWindService
+from user.weatherlink_live.service import WllWindGustService
+from weewx import WeeWxIOError
 from weewx.drivers import AbstractDevice
+from weewx.engine import InitializationError
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.0"
+DRIVER_VERSION = "1.0.1"
 
 log = logging.getLogger(__name__)
 
@@ -61,12 +63,36 @@ _temperature_fields = ["dewpoint2",
                        "thw",
                        "thsw",
                        "inHeatindex"]
+_rain_count_fields = ['rainCount']  # unit: count
+_rain_count_rate_fields = ['rainCountRate']  # unit: count per hour
+_rain_amount_fields = ['rainSize']  # unit: technically rain amount (inch/mm)
 
 schema = {
-    'table': wview_extended.table + [(field, "REAL") for field in _temperature_fields],
-    'day_summaries': wview_extended.day_summaries + [(field, "SCALAR") for field in _temperature_fields]
+    'table': wview_extended.table
+             + [(field, "REAL") for field in _temperature_fields]
+             + [(field, "REAL") for field in _rain_count_fields]
+             + [(field, "REAL") for field in _rain_count_rate_fields]
+             + [(field, "REAL") for field in _rain_amount_fields],
+    'day_summaries': wview_extended.day_summaries
+                     + [(field, "SCALAR") for field in _temperature_fields]
+                     + [(field, "SCALAR") for field in _rain_count_fields]
+                     + [(field, "SCALAR") for field in _rain_count_rate_fields]
+                     + [(field, "SCALAR") for field in _rain_amount_fields]
 }
+
+# Define units of new observation
 weewx.units.obs_group_dict.update(dict([(observation, "group_temperature") for observation in _temperature_fields]))
+weewx.units.obs_group_dict.update(dict([(observation, "group_count") for observation in _rain_count_fields]))
+weewx.units.obs_group_dict.update(dict([(observation, "group_rate") for observation in _rain_count_rate_fields]))
+weewx.units.obs_group_dict.update(dict([(observation, "group_rain") for observation in _rain_amount_fields]))
+
+# Define unit group 'group_rate'
+weewx.units.USUnits['group_rate'] = 'per_hour'
+weewx.units.MetricUnits['group_rate'] = 'per_hour'
+weewx.units.MetricWXUnits['group_rate'] = 'per_hour'
+
+weewx.units.default_unit_format_dict['per_hour'] = '%.0f'
+weewx.units.default_unit_label_dict['per_hour'] = ' per hour'
 
 
 def loader(config_dict, engine):
@@ -88,8 +114,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
         log.debug("Configuration: %s" % (repr(self.configuration)))
 
         self.mappers = self.configuration.create_mappers()
-        self.wind_service = WllWindService(engine, conf_dict, self.mappers, self.configuration.log_success,
-                                           self.configuration.log_error)
+        self.wind_service = WllWindGustService(engine, conf_dict, self.mappers, self.configuration.log_success,
+                                               self.configuration.log_error)
 
         self.is_running = False
         self.poll_host = None
@@ -104,11 +130,17 @@ class WeatherlinkLiveDriver(AbstractDevice):
         """Open connection and generate loop packets"""
 
         if not self.is_running:
-            self.start()
+            try:
+                self.start()
+            except Exception as e:
+                raise InitializationError("Error while starting driver") from e
 
         while True:
-            self.poll_host.raise_error()
-            self.push_host.raise_error()
+            try:
+                self.poll_host.raise_error()
+                self.push_host.raise_error()
+            except Exception as e:
+                raise WeeWxIOError("Error while receiving or processing packets") from e
 
             while self.poll_host.packets:
                 yield self.poll_host.packets.popleft()

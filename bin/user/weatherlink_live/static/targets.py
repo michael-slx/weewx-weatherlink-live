@@ -78,6 +78,9 @@ WIND_DIR = ["windDir"]
 # RAIN
 RAIN_AMOUNT = ["rain"]
 RAIN_RATE = ["rainRate"]
+RAIN_COUNT = ["rainCount"]
+RAIN_COUNT_RATE = ["rainCountRate"]
+RAIN_SIZE = ["rainSize"]
 
 # SOLAR
 SOLAR_RADIATION = ["radiation"]

@@ -21,7 +21,7 @@
 import logging
 from typing import List
 
-from user.weatherlink_live.mappers import TMapping, THMapping, WindGustMapping, RainMapping, SolarMapping, UvMapping, \
+from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
     THIndoorMapping, BaroMapping, AbstractMapping
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING
@@ -31,7 +31,7 @@ from weeutil.weeutil import to_bool
 MAPPERS = {
     't': TMapping,
     'th': THMapping,
-    'wind': WindGustMapping,
+    'wind': WindMapping,
     'rain': RainMapping,
     'solar': SolarMapping,
     'uv': UvMapping,
