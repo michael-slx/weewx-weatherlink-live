@@ -20,11 +20,14 @@
 
 import json
 import logging
+import select
 import threading
+from json import JSONDecodeError
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
 
 from user.weatherlink_live.callback import PacketCallback
 from user.weatherlink_live.packets import WlUdpBroadcastPacket
+from weewx import WeeWxIOError
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +39,8 @@ class WllBroadcastReceiver(object):
         self.broadcasting_wl_host = broadcasting_wl_host
         self.port = port
         self.callback = callback
+
+        self.wait_timeout = 5
 
         self.sock = None
 
@@ -52,8 +57,15 @@ class WllBroadcastReceiver(object):
             self.sock.bind(('', self.port))
 
             while not self.stop_signal.is_set():
+                r, _, _ = select.select([self.sock], [], [], self.wait_timeout)
+                if not r:
+                    continue
+
                 data, source_addr = self.sock.recvfrom(2048)
-                json_data = json.loads(data.decode("utf-8"))
+                try:
+                    json_data = json.loads(data.decode("utf-8"))
+                except JSONDecodeError as e:
+                    raise WeeWxIOError("Error decoding broadcast packet JSON") from e
 
                 packet = WlUdpBroadcastPacket.try_create(json_data, self.broadcasting_wl_host)
                 self.callback.on_packet_received(packet)
@@ -65,8 +77,14 @@ class WllBroadcastReceiver(object):
     def close(self):
         log.debug("Stopping broadcast reception")
         self.stop_signal.set()
+        self.thread.join(self.wait_timeout * 3)
+
+        if self.thread.is_alive():
+            log.warn("Broadcast reception thread still alive. Force closing socket")
+
         if self.sock is not None:
             self.sock.close()
             self.sock = None
-        self.thread.join(10)
+            log.debug("Closed broadcast receiving socket")
+
         log.debug("Stopped broadcast reception")
