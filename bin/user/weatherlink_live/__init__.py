@@ -28,7 +28,9 @@ from schemas import wview_extended
 from user.weatherlink_live import davis_http, data_host
 from user.weatherlink_live.configuration import create_configuration
 from user.weatherlink_live.service import WllWindGustService
+from weewx import WeeWxIOError
 from weewx.drivers import AbstractDevice
+from weewx.engine import InitializationError
 
 DRIVER_NAME = "WeatherLinkLive"
 DRIVER_VERSION = "1.0.0"
@@ -128,11 +130,17 @@ class WeatherlinkLiveDriver(AbstractDevice):
         """Open connection and generate loop packets"""
 
         if not self.is_running:
-            self.start()
+            try:
+                self.start()
+            except Exception as e:
+                raise InitializationError("Error while starting driver") from e
 
         while True:
-            self.poll_host.raise_error()
-            self.push_host.raise_error()
+            try:
+                self.poll_host.raise_error()
+                self.push_host.raise_error()
+            except Exception as e:
+                raise WeeWxIOError("Error while receiving or processing packets") from e
 
             while self.poll_host.packets:
                 yield self.poll_host.packets.popleft()
