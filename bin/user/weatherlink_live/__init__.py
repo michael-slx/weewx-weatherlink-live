@@ -27,7 +27,7 @@ import weewx.units
 from schemas import wview_extended
 from user.weatherlink_live import davis_http, data_host
 from user.weatherlink_live.configuration import create_configuration
-from user.weatherlink_live.service import WllWindService
+from user.weatherlink_live.service import WllWindGustService
 from weewx.drivers import AbstractDevice
 
 DRIVER_NAME = "WeatherLinkLive"
@@ -112,8 +112,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
         log.debug("Configuration: %s" % (repr(self.configuration)))
 
         self.mappers = self.configuration.create_mappers()
-        self.wind_service = WllWindService(engine, conf_dict, self.mappers, self.configuration.log_success,
-                                           self.configuration.log_error)
+        self.wind_service = WllWindGustService(engine, conf_dict, self.mappers, self.configuration.log_success,
+                                               self.configuration.log_error)
 
         self.is_running = False
         self.poll_host = None

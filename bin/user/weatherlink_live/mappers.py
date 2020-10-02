@@ -154,7 +154,7 @@ class THMapping(AbstractMapping):
                                packet.get_observation(KEY_WET_BULB, DataStructureType.ISS, self.tx_id))
 
 
-class WindGustMapping(AbstractMapping):
+class WindMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
         super().__init__({
             'wind_dir': targets.WIND_DIR,
