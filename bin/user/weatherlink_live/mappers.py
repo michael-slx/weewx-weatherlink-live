@@ -233,7 +233,7 @@ class RainMapping(AbstractMapping):
             self._set_record_entry(record, target_amount, self._multiply(current_daily_rain_count, rain_bucket_factor))
 
         else:
-            count_diff = self.last_daily_rain_count - current_daily_rain_count
+            count_diff = current_daily_rain_count - self.last_daily_rain_count
             self._set_record_entry(record, target_count, count_diff)
             self._set_record_entry(record, target_amount, self._multiply(count_diff, rain_bucket_factor))
 
