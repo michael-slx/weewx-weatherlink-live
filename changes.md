@@ -35,3 +35,9 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 - Make rain mapping and wind service `None`-safe
 - Convert all caught errors in driver to `InitializationError ` and `WeeWxIOError `. This improves integration with WeeWX's automatic retries.
 - Minor refactoring
+
+## Version 1.0.2
+
+- **Fix incorrect rain diff calculation**
+  Previous amount needs to be subtracted from the current amount, not
+  vice-versa.
