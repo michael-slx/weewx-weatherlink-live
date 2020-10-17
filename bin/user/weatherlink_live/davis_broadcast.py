@@ -46,6 +46,7 @@ class WllBroadcastReceiver(object):
 
         self.stop_signal = threading.Event()
         self.thread = threading.Thread(name='WLL-BroadcastReception', target=self._reception)
+        self.thread.daemon = True
         self.thread.start()
 
     def _reception(self):
