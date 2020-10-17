@@ -25,7 +25,7 @@ import logging
 
 import weewx.units
 from schemas import wview_extended
-from user.weatherlink_live import davis_http, data_host
+from user.weatherlink_live import davis_http, data_host, scheduler
 from user.weatherlink_live.configuration import create_configuration
 from user.weatherlink_live.service import WllWindGustService
 from weewx import WeeWxIOError
@@ -118,6 +118,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
                                                self.configuration.log_error)
 
         self.is_running = False
+        self.scheduler = None
         self.poll_host = None
         self.push_host = None
 
@@ -152,14 +153,17 @@ class WeatherlinkLiveDriver(AbstractDevice):
             return
 
         self.is_running = True
+        self.scheduler = scheduler.Scheduler()
         self.poll_host = data_host.WllPollHost(self.configuration.host, self.configuration.polling_interval,
-                                               self.mappers)
-        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers)
+                                               self.mappers, self.scheduler)
+        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers, self.scheduler)
 
     def closePort(self):
         """Close connection"""
 
         self.is_running = False
+        if self.scheduler is not None:
+            self.scheduler.cancel()
         if self.poll_host is not None:
             self.poll_host.close()
         if self.push_host is not None:

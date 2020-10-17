@@ -59,6 +59,7 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
                     'bin/user/weatherlink_live/davis_http.py',
                     'bin/user/weatherlink_live/mappers.py',
                     'bin/user/weatherlink_live/packets.py',
+                    'bin/user/weatherlink_live/scheduler.py',
                     'bin/user/weatherlink_live/service.py',
                     'bin/user/weatherlink_live/utils.py',
                 ]),
