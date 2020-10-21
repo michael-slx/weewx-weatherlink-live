@@ -41,3 +41,11 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 - **Fix incorrect rain diff calculation**
   Previous amount needs to be subtracted from the current amount, not
   vice-versa.
+
+## Version 1.0.3
+
+- **Fix broadcast activation failing after some time**
+  After an irregular timespan (usually hours to days) broadcast activation would silently fail. This was due to the polling and broadcast activation happening at the same time. The WLL however is unable to cope with multiple simultaneous HTTP requests.
+  This was resolved by implementing a centralized scheduler to avoid multiple tasks being executed simultaneously.
+
+- **Switch all driver threads to "daemon mode"**
