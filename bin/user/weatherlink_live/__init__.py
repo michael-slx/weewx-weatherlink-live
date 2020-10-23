@@ -22,6 +22,7 @@
 WeeWX driver for WeatherLink Live and AirLink
 """
 import logging
+import threading
 
 import weewx.units
 from schemas import wview_extended
@@ -33,7 +34,7 @@ from weewx.drivers import AbstractDevice
 from weewx.engine import InitializationError
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.3"
+DRIVER_VERSION = "1.0.4"
 
 log = logging.getLogger(__name__)
 
@@ -119,6 +120,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
         self.is_running = False
         self.scheduler = None
+        self.data_event = None
         self.poll_host = None
         self.push_host = None
 
@@ -140,13 +142,26 @@ class WeatherlinkLiveDriver(AbstractDevice):
             try:
                 self.poll_host.raise_error()
                 self.push_host.raise_error()
-            except Exception as e:
-                raise WeeWxIOError("Error while receiving or processing packets") from e
 
-            while self.poll_host.packets:
-                yield self.poll_host.packets.popleft()
-            while self.push_host.packets:
-                yield self.push_host.packets.popleft()
+                if self.poll_host.packets:
+                    log.info("Emitting poll packet")
+                    yield self.poll_host.packets.popleft()
+
+                if self.push_host.packets:
+                    log.info("Emitting push (broadcast) packet")
+                    yield self.push_host.packets.popleft()
+
+                log.debug("Waiting for new packet")
+                self.data_event.wait(5)  # edo a check every 5 secs
+
+            except (InterruptedError, KeyboardInterrupt):
+                break
+
+            except Exception as e:
+                raise WeeWxIOError("Error while receiving or processing packets: %s" % str(e)) from e
+
+            finally:
+                self.data_event.clear()
 
     def start(self):
         if self.is_running:
@@ -154,9 +169,11 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
         self.is_running = True
         self.scheduler = scheduler.Scheduler()
+        self.data_event = threading.Event()
         self.poll_host = data_host.WllPollHost(self.configuration.host, self.configuration.polling_interval,
-                                               self.mappers, self.scheduler)
-        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers, self.scheduler)
+                                               self.mappers, self.scheduler, self.data_event)
+        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers, self.scheduler,
+                                                    self.data_event)
 
     def closePort(self):
         """Close connection"""

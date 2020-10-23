@@ -49,3 +49,9 @@ The driver only uses it for the rate of the rain collector spoon tripping.
   This was resolved by implementing a centralized scheduler to avoid multiple tasks being executed simultaneously.
 
 - **Switch all driver threads to "daemon mode"**
+
+## Version 1.0.4
+
+- **Fix high CPU usage** ([#2](https://github.com/michael-slx/weewx-weatherlink-live/issues/2))
+  Due to not blocking the loop when no packets were available, this driver caused WeeWX to have an absurdly high CPU utilization. This is now resolved by pausing the loop until a packet is received (or an error is caught). As a safety measure, the driver checks for new data every 5 seconds anyway.
+

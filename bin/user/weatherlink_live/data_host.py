@@ -20,6 +20,7 @@
 
 import logging
 import random
+import threading
 import time
 from collections import deque
 from typing import List
@@ -38,9 +39,10 @@ log = logging.getLogger(__name__)
 class DataHost(object):
     """Base host class for polled as well as broadcasted data"""
 
-    def __init__(self, mappers: List[AbstractMapping], scheduler: Scheduler):
+    def __init__(self, mappers: List[AbstractMapping], scheduler: Scheduler, data_event: threading.Event):
         self._mappers = mappers
         self._scheduler = scheduler
+        self._data_event = data_event
 
         self.packets = deque()
         self.error = None
@@ -63,12 +65,19 @@ class DataHost(object):
         record['dateTime'] = packet.timestamp
         record['usUnits'] = weewx.US
 
+        self._data_event.set()
+
+    def notify_error(self, e):
+        self.error = e
+        self._data_event.set()
+
 
 class WllPollHost(DataHost):
     """Host object for polling data from WLL"""
 
-    def __init__(self, host: str, polling_interval: float, mappers: List[AbstractMapping],scheduler: Scheduler):
-        super().__init__(mappers, scheduler)
+    def __init__(self, host: str, polling_interval: float, mappers: List[AbstractMapping], scheduler: Scheduler,
+                 data_event: threading.Event):
+        super().__init__(mappers, scheduler, data_event)
         self.host = host
         self.polling_interval = polling_interval
 
@@ -88,7 +97,7 @@ class WllPollHost(DataHost):
         try:
             self._poll()
         except Exception as e:
-            self.error = e
+            self.notify_error(e)
             log.error("Error occurred. Don't reschedule")
             return
 
@@ -101,8 +110,8 @@ class WllPollHost(DataHost):
 class WLLBroadcastHost(DataHost, PacketCallback):
     """Class for triggering UDP broadcasts and receiving them"""
 
-    def __init__(self, host: str, mappers: List[AbstractMapping], scheduler: Scheduler):
-        super().__init__(mappers, scheduler)
+    def __init__(self, host: str, mappers: List[AbstractMapping], scheduler: Scheduler, data_event: threading.Event):
+        super().__init__(mappers, scheduler, data_event)
         self.host = host
 
         self._receiver = None
@@ -112,10 +121,15 @@ class WLLBroadcastHost(DataHost, PacketCallback):
         self._scheduler.add_push_refresh_task(time.time() + 1, self._reschedule)
 
     def _reschedule(self):
-        duration, port = self._reactivate_broadcast()
-        reschedule_duration = self._reschedule_duration(duration)
+        try:
+            duration, port = self._reactivate_broadcast()
+            reschedule_duration = self._reschedule_duration(duration)
+        except Exception as e:
+            self.notify_error(e)
+            log.error("Error occurred. Don't reschedule")
+            return
 
-        self._scheduler.add_push_refresh_task(time.time()+reschedule_duration, self._reschedule)
+        self._scheduler.add_push_refresh_task(time.time() + reschedule_duration, self._reschedule)
 
     def _reactivate_broadcast(self):
         log.debug("Re-requesting UDP broadcast")
@@ -155,11 +169,11 @@ class WLLBroadcastHost(DataHost, PacketCallback):
         try:
             self._create_record(packet)
         except Exception as e:
-            self.error = e
+            self.notify_error(e)
             self.close()
 
     def on_packet_receive_error(self, e: BaseException):
-        self.error = e
+        self.notify_error(e)
         self.close()
 
     def close(self):

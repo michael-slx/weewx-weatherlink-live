@@ -7,7 +7,7 @@ Unlike other drivers, mixing many sensors transmitting on any id is fully suppor
 Unfortunately the WeatherLink Live currently does not provide a local API to access historic data.
 An API is available for WeatherLink subscribers. This driver does however not support this interface.
 
-This drives requires **WeeWX 4** and **Python 3**.
+This drives requires **WeeWX 4**, **Python 3** and the Python **`requests` module**.
 
 <!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
@@ -32,7 +32,7 @@ This drives requires **WeeWX 4** and **Python 3**.
 
 ## Getting started
 
-_Working WeeWX 4 installation using Python 3.8 is assumed_
+_Working WeeWX 4 installation using Python 3 is assumed. As well as that the Python `requests` module is required._
 
 1. **Download release package** or clone repository with Git
 2. **Install extension** using `wee_extension` utility
@@ -81,7 +81,7 @@ The units of all additionally defined observations are converted as specified in
     [[wx_binding]]
         database = archive_sqlite
         table_name = archive
-        manager = weewx.wxmanager.WXDaySummaryManager
+        manager = weewx.manager.DaySummaryManager
         # use WLL schema
         schema = user.weatherlink_live.schema
 
