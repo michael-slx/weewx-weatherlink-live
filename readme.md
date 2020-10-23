@@ -81,7 +81,7 @@ The units of all additionally defined observations are converted as specified in
     [[wx_binding]]
         database = archive_sqlite
         table_name = archive
-        manager = weewx.wxmanager.WXDaySummaryManager
+        manager = weewx.manager.DaySummaryManager
         # use WLL schema
         schema = user.weatherlink_live.schema
 
