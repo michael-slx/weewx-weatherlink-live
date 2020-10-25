@@ -144,11 +144,11 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 self.push_host.raise_error()
 
                 if self.poll_host.packets:
-                    log.info("Emitting poll packet")
+                    self._log_success("Emitting poll packet")
                     yield self.poll_host.packets.popleft()
 
                 if self.push_host.packets:
-                    log.info("Emitting push (broadcast) packet")
+                    self._log_success("Emitting push (broadcast) packet")
                     yield self.push_host.packets.popleft()
 
                 log.debug("Waiting for new packet")
@@ -185,3 +185,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
             self.poll_host.close()
         if self.push_host is not None:
             self.push_host.close()
+
+    def _log_success(self, msg: str, level: int = logging.INFO) -> None:
+        if not self.configuration.log_success:
+            return
+        log.log(level, msg)
