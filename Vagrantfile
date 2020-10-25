@@ -8,5 +8,5 @@ Vagrant.configure("2") do |config|
     v.cpus = 8
   end
 
-  config.vm.provision :shell, path: "testing/bin/provision.sh", privileged: false
+  config.vm.provision :shell, path: "testing/bin/provision.sh", privileged: false, keep_color: true
 end
