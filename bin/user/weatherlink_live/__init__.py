@@ -154,11 +154,11 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 log.debug("Waiting for new packet")
                 self.data_event.wait(5)  # edo a check every 5 secs
 
-            except (InterruptedError, KeyboardInterrupt):
-                break
-
             except Exception as e:
                 raise WeeWxIOError("Error while receiving or processing packets: %s" % str(e)) from e
+
+            except (InterruptedError, KeyboardInterrupt):
+                raise
 
             finally:
                 self.data_event.clear()
