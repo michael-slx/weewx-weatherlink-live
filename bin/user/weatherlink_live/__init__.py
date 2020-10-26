@@ -136,33 +136,27 @@ class WeatherlinkLiveDriver(AbstractDevice):
             try:
                 self.start()
             except Exception as e:
-                raise InitializationError("Error while starting driver") from e
+                raise InitializationError("Error while starting driver: %s" % str(e)) from e
 
         while True:
             try:
                 self.scheduler.raise_error()
                 self.poll_host.raise_error()
                 self.push_host.raise_error()
-
-                if self.poll_host.packets:
-                    self._log_success("Emitting poll packet")
-                    yield self.poll_host.packets.popleft()
-
-                if self.push_host.packets:
-                    self._log_success("Emitting push (broadcast) packet")
-                    yield self.push_host.packets.popleft()
-
-                log.debug("Waiting for new packet")
-                self.data_event.wait(5)  # edo a check every 5 secs
-
             except Exception as e:
                 raise WeeWxIOError("Error while receiving or processing packets: %s" % str(e)) from e
 
-            except (InterruptedError, KeyboardInterrupt):
-                raise
+            if self.poll_host.packets:
+                self._log_success("Emitting poll packet")
+                yield self.poll_host.packets.popleft()
 
-            finally:
-                self.data_event.clear()
+            if self.push_host.packets:
+                self._log_success("Emitting push (broadcast) packet")
+                yield self.push_host.packets.popleft()
+
+            log.debug("Waiting for new packet")
+            self.data_event.wait(5)  # do a check every 5 secs
+            self.data_event.clear()
 
     def start(self):
         if self.is_running:
