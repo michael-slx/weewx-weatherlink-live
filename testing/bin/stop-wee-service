@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+systemctl stop weewx
+sleep 5
+journalctl -u weewx -e

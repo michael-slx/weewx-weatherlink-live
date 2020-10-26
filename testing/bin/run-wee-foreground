@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+/usr/bin/weewxd /etc/weewx/weewx.conf

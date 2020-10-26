@@ -34,7 +34,7 @@ from weewx.drivers import AbstractDevice
 from weewx.engine import InitializationError
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.4"
+DRIVER_VERSION = "1.0.5"
 
 log = logging.getLogger(__name__)
 
@@ -136,44 +136,38 @@ class WeatherlinkLiveDriver(AbstractDevice):
             try:
                 self.start()
             except Exception as e:
-                raise InitializationError("Error while starting driver") from e
+                raise InitializationError("Error while starting driver: %s" % str(e)) from e
 
         while True:
             try:
+                self.scheduler.raise_error()
                 self.poll_host.raise_error()
                 self.push_host.raise_error()
-
-                if self.poll_host.packets:
-                    log.info("Emitting poll packet")
-                    yield self.poll_host.packets.popleft()
-
-                if self.push_host.packets:
-                    log.info("Emitting push (broadcast) packet")
-                    yield self.push_host.packets.popleft()
-
-                log.debug("Waiting for new packet")
-                self.data_event.wait(5)  # edo a check every 5 secs
-
-            except (InterruptedError, KeyboardInterrupt):
-                break
-
             except Exception as e:
                 raise WeeWxIOError("Error while receiving or processing packets: %s" % str(e)) from e
 
-            finally:
-                self.data_event.clear()
+            if self.poll_host.packets:
+                self._log_success("Emitting poll packet")
+                yield self.poll_host.packets.popleft()
+
+            if self.push_host.packets:
+                self._log_success("Emitting push (broadcast) packet")
+                yield self.push_host.packets.popleft()
+
+            log.debug("Waiting for new packet")
+            self.data_event.wait(5)  # do a check every 5 secs
+            self.data_event.clear()
 
     def start(self):
         if self.is_running:
             return
 
         self.is_running = True
-        self.scheduler = scheduler.Scheduler()
         self.data_event = threading.Event()
-        self.poll_host = data_host.WllPollHost(self.configuration.host, self.configuration.polling_interval,
-                                               self.mappers, self.scheduler, self.data_event)
-        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers, self.scheduler,
-                                                    self.data_event)
+        self.poll_host = data_host.WllPollHost(self.configuration.host, self.mappers, self.data_event)
+        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers, self.data_event)
+        self.scheduler = scheduler.Scheduler(self.configuration.polling_interval, self.poll_host.poll,
+                                             self.push_host.refresh_broadcast, self.data_event)
 
     def closePort(self):
         """Close connection"""
@@ -185,3 +179,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
             self.poll_host.close()
         if self.push_host is not None:
             self.push_host.close()
+
+    def _log_success(self, msg: str, level: int = logging.INFO) -> None:
+        if not self.configuration.log_success:
+            return
+        log.log(level, msg)
