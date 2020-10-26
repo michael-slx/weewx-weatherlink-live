@@ -140,6 +140,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
         while True:
             try:
+                self.scheduler.raise_error()
                 self.poll_host.raise_error()
                 self.push_host.raise_error()
 
@@ -168,12 +169,11 @@ class WeatherlinkLiveDriver(AbstractDevice):
             return
 
         self.is_running = True
-        self.scheduler = scheduler.Scheduler()
         self.data_event = threading.Event()
-        self.poll_host = data_host.WllPollHost(self.configuration.host, self.configuration.polling_interval,
-                                               self.mappers, self.scheduler, self.data_event)
-        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers, self.scheduler,
-                                                    self.data_event)
+        self.poll_host = data_host.WllPollHost(self.configuration.host, self.mappers, self.data_event)
+        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers, self.data_event)
+        self.scheduler = scheduler.Scheduler(self.configuration.polling_interval, self.poll_host.poll,
+                                             self.push_host.refresh_broadcast, self.data_event)
 
     def closePort(self):
         """Close connection"""
