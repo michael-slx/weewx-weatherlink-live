@@ -18,7 +18,6 @@ makepkg -si --noconfirm
 cd "$HOME/aur/mslx/weewx"
 makepkg -si --noconfirm
 
-sudo cp -Rsfv /vagrant/bin/user /usr/lib/weewx
 sudo cp -fv /vagrant/testing/conf/weewx.conf /etc/weewx/weewx.conf
 
 echo 'export PATH=$PATH:/vagrant/testing/bin' | tee /home/vagrant/.bashrc >/dev/null
