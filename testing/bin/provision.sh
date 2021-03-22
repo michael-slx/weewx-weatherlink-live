@@ -6,7 +6,7 @@ sudo hostnamectl set-hostname "vm-weewx-wll-test"
 sudo pacman -Syyuu --noconfirm
 
 if ! pacman -Qe | cut -f 1 -d " " | grep -q "python-requests"; then
-  sudo pacman -S --noconfirm base-devel git wget curl python-requests
+  sudo pacman -S --noconfirm base-devel git wget curl freetype2 python-requests python-objgraph
 fi
 
 [[ -d "$HOME/aur/mslx" ]] || git clone https://github.com/michael-slx/aur-packages.git "$HOME/aur/mslx"
