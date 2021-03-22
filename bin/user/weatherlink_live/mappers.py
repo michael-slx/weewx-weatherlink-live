@@ -62,8 +62,8 @@ class AbstractMapping(object):
             self._log("Mapping not responsible: %s" % message)
 
     def _log_mapping_notInPacket(self):
-        if self.log_success: # not an error
-            self._log("Mapping failure: Observation not found in packet")
+        if self.log_success:  # because this is part of normal operation
+            self._log("Observation not found in packet")
 
     def _parse_option_int(self, opts: list, index: int) -> int:
         try:
