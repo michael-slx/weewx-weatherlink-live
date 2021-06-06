@@ -63,6 +63,7 @@ class WllBroadcastReceiver(object):
                     continue
 
                 data, source_addr = self.sock.recvfrom(2048)
+                log.debug("Received %d bytes from %s" % (len(data), source_addr))
                 try:
                     json_data = json.loads(data.decode("utf-8"))
                 except JSONDecodeError as e:
