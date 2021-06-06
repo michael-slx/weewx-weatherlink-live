@@ -180,7 +180,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
         if self.push_host is not None:
             self.push_host.close()
 
-    def _log_success(self, msg: str, level: int = logging.INFO) -> None:
+    def _log_success(self, msg: str, level: int = logging.DEBUG) -> None:
         if not self.configuration.log_success:
             return
         log.log(level, msg)
