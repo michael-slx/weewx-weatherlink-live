@@ -35,17 +35,49 @@ This drives requires **WeeWX 4**, **Python 3** and the Python **`requests` modul
 _Working WeeWX 4 installation using Python 3 is assumed. As well as that the Python `requests` module is required._
 
 1. **Download release package** or clone repository with Git
-2. **Install extension** using `wee_extension` utility
-3. **Set `host` and `mapping`** options
-4. Configure WeeWX to **use this driver (`user.weatherlink_live`)**
+
+2. **Install extension** using `wee_extension` utility:
+
+   ```bash
+   $ wee_extension --install=weewx-weatherlink-live.tar.xz
+   ```
+
+3. **Switch driver** and **create example config**
+
+   ```bash
+   $ wee_config --reconfigure --driver=user.weatherlink_live --no-prompt
+   ```
+
+4. **Set `host` and `mapping`** options
+
 5. _Optional:_ Switch to WLL **database schema (`user.weatherlink_live.schema`)**
+
 6. **Restart WeeWX**
 
 ## Detailed instructions
 
-Firstly, download the latest release package and install it using the `wee_extension` utility. Then configure WeeWX to use this driver and set the required options `host` and `mapping`.
+Firstly, download the latest release package and install it using the `wee_extension` utility. Remember to specify the correct file name and execute all commands with sufficient permissions (i.e. `sudo`).
 
-If you wish to store all data measured by your Davis weather station, you may need to switch to the database schema provided by this extension (`user.weatherlink_live.schema`). See the [official WeeWX customization guide](http://www.weewx.com/docs/customizing.htm#archive_database) for additional information.
+```bash
+$ wee_extension --install=weewx-weatherlink-live.tar.xz
+```
+
+ Then configure WeeWX to use this driver and create the example configuration.
+
+```bash
+$ wee_config --reconfigure --driver=user.weatherlink_live --no-prompt
+```
+
+Finally, set the required options `host` and `mapping`.
+
+If you wish to store all data measured by your Davis weather station, you may need to switch to the database schema provided by this extension (`user.weatherlink_live.schema`). See the [official WeeWX customization guide](http://www.weewx.com/docs/customizing.htm#archive_database) for additional information. The additional types included in the schema are:
+
+- Extra dewpoint, heat index and wet bulb fields
+- THW and THSW index ("feels like temperature")
+- Indoor heat index
+- Count of rain spoon trips since last packet
+- Rate of rain spoon trips
+- Configured size of rain spoon
 
 The units of all additionally defined observations are converted as specified in your configuration and skin. In addition to those specified by WeeWX, the driver defines the unit group `group_rate` currently only consisting of one unit: `per_hour`.
 
@@ -84,6 +116,16 @@ The units of all additionally defined observations are converted as specified in
         manager = weewx.manager.DaySummaryManager
         # use WLL schema
         schema = user.weatherlink_live.schema
+
+# Configure accumulation for custom observations
+[Accumulator]
+
+    [[rainCount]]
+        extractor = sum
+
+    [[rainSize]]
+        extractor = last
+
 
 ```
 
