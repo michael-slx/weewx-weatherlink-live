@@ -37,22 +37,6 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
             description='WeeWX driver for Davis WeatherLink Live.',
             author="Michael Schantl",
             author_email="floss@schantl-lx.at",
-            config={
-                'Station': {
-                    'station_type': 'WeatherLinkLive'
-                },
-                'WeatherLinkLive': {
-                    'driver': 'user.weatherlink_live',
-                    'host': 'weatherlink',
-                    'polling_interval': '10',
-                    'mapping': ['th:1', 'th_indoor', 'baro', 'rain:1', 'wind:1', 'solar:1', 'uv:1', 'thw:1', 'thsw:1',
-                                'windchill:1']
-                },
-                'Accumulator': {
-                    'rainCount': {'extractor': 'sum'},
-                    'rainSize': {'extractor': 'last'}
-                }
-            },
             files=[
                 ('bin/user/weatherlink_live', [
                     'bin/user/weatherlink_live/__init__.py',
