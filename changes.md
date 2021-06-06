@@ -62,3 +62,27 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 - **Fix log messages in the main packet loop not respecting `log_success` configuration option** ([#3](https://github.com/michael-slx/weewx-weatherlink-live/issues/3))
 - **Completely rework scheduling logic**
   All scheduling is now centralized. This should prevent any tasks to be executed immediately one after another. Push refreshing is now performed every 20 minutes and is scheduled using a integer factor of polling events
+
+## Snapshot 2021-06-06
+
+### HTTP
+
+- **Retry failed HTTP requests**
+  If HTTP requests fail, the driver will attempt to send them again up to 3 times. Should none of the attempts succeed, an exception will be raised.
+
+### Configuration
+
+- **Configure accumulators for custom observations defined by driver**
+  `rainCount` is accumulated by summation and for `rainSize` the last available value is used.
+- **Move example configuration from installer tool to configuration editor**
+  Example configuration now includes comments.
+
+### Logging
+
+- **Change log message to not read like an error**
+  Mapping debug message previously read like an error message. This is now improved.
+- **Reduce chattiness of driver during normal operation** ([#10](https://github.com/michael-slx/weewx-weatherlink-live/issues/10))
+  The driver previously logged `INFO` messages when emitting packets. This was changed to `DEBUG`.
+- **Add additional log messages when receiving and decoding broadcast packets**
+  When receiving broadcast messages, the size of the packet will be logged and a message will be printed when creating packet objects.
+
