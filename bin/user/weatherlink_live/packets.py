@@ -21,11 +21,14 @@
 """
 Packets as returned by the API
 """
+import logging
 from typing import Optional, Any, List
 
 import weewx
 from user.weatherlink_live.static import PacketSource
 from user.weatherlink_live.static.packets import DataStructureType
+
+log = logging.getLogger(__name__)
 
 
 class NotInPacket(Exception):
@@ -138,6 +141,7 @@ class WlHttpConditionsRequestPacket(DavisConditionsPacket):
 
     @staticmethod
     def try_create(packet: dict, host: str):
+        log.debug("Trying to create HTTP conditions packet")
         try:
             return WlHttpConditionsRequestPacket(packet, host)
         except (ValueError, KeyError) as e:
@@ -187,6 +191,7 @@ class WlUdpBroadcastPacket(DavisConditionsPacket):
 
     @staticmethod
     def try_create(packet: dict, host: str):
+        log.debug("Trying to create UDP conditions packet")
         try:
             return WlUdpBroadcastPacket(packet, host)
         except (ValueError, KeyError) as e:
