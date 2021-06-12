@@ -247,10 +247,6 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
     # Host name or IP address of WeatherLink Live
     host = weatherlink
 
-    # Interval between polling current conditions in seconds
-    # Minimum: 10 seconds
-    polling_interval = 10
-
     # Mapping of transmitter ids to WeeWX records
     # Default for Vantage Pro2
     mapping = th:1, th_indoor, baro, rain:1, wind:1, thw:1, windchill:1
