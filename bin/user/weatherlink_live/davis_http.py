@@ -29,12 +29,12 @@ from weewx import WeeWxIOError
 log = logging.getLogger(__name__)
 
 
-def start_broadcast(host: str, duration):
+def start_broadcast(host: str, duration, timeout: float = 5):
     error: Optional[Exception] = None
 
     for i in range(3):
         try:
-            r = requests.get("http://%s:80/v1/real_time?duration=%d" % (host, duration))
+            r = requests.get("http://%s:80/v1/real_time?duration=%d" % (host, duration), timeout=timeout)
             json = r.json()
             return WlHttpBroadcastStartRequestPacket.try_create(json, host)
         except Exception as e:
@@ -49,12 +49,12 @@ def start_broadcast(host: str, duration):
     raise WeeWxIOError("HTTP request failed without setting an error")
 
 
-def request_current(host: str):
+def request_current(host: str, timeout: float = 5):
     error: Optional[Exception] = None
 
     for i in range(3):
         try:
-            r = requests.get("http://%s:80/v1/current_conditions" % host)
+            r = requests.get("http://%s:80/v1/current_conditions" % host, timeout=timeout)
             json = r.json()
             return WlHttpConditionsRequestPacket.try_create(json, host)
         except Exception as e:

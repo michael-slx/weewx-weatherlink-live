@@ -26,7 +26,7 @@ from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, Rain
     THIndoorMapping, BaroMapping, AbstractMapping
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING
 from user.weatherlink_live.utils import to_list
-from weeutil.weeutil import to_bool
+from weeutil.weeutil import to_bool, to_float
 
 MAPPERS = {
     't': TMapping,
@@ -60,8 +60,16 @@ def create_configuration(config: dict, driver_name: str):
 
     log_success = to_bool(config.get('log_success', False))
     log_error = to_bool(config.get('log_failure', True))
+    socket_timeout = to_float(config.get('socket_timeout', 20))
 
-    config_obj = Configuration(host, mappings, polling_interval, log_success, log_error)
+    config_obj = Configuration(
+        host,
+        mappings,
+        polling_interval,
+        log_success,
+        log_error,
+        socket_timeout
+    )
     return config_obj
 
 
@@ -77,14 +85,20 @@ def _parse_mappings(mappings_list: List[str]) -> List[List[str]]:
 class Configuration(object):
     """Configuration of driver"""
 
-    def __init__(self, host: str, mappings: List[List[str]], polling_interval: float, log_success: bool,
-                 log_error: bool):
+    def __init__(self,
+                 host: str,
+                 mappings: List[List[str]],
+                 polling_interval: float,
+                 log_success: bool,
+                 log_error: bool,
+                 socket_timeout: float):
         self.host = host
         self.mappings = mappings
         self.polling_interval = polling_interval
 
         self.log_success = log_success
         self.log_error = log_error
+        self.socket_timeout = socket_timeout
 
     def __repr__(self):
         return str(self.__dict__)

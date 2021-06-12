@@ -71,12 +71,17 @@ class DataHost(object):
 class WllPollHost(DataHost):
     """Host object for polling data from WLL"""
 
-    def __init__(self, host: str, mappers: List[AbstractMapping], data_event: threading.Event):
+    def __init__(self,
+                 host: str,
+                 mappers: List[AbstractMapping],
+                 data_event: threading.Event,
+                 http_timeout: float = 20):
         super().__init__(mappers, data_event)
         self.host = host
+        self.http_timeout = http_timeout
 
     def poll(self):
-        packet = request_current(self.host)
+        packet = request_current(self.host, timeout=self.http_timeout)
         log.debug("Polled current conditions")
 
         self._create_record(packet)
@@ -88,16 +93,21 @@ class WllPollHost(DataHost):
 class WLLBroadcastHost(DataHost, PacketCallback):
     """Class for triggering UDP broadcasts and receiving them"""
 
-    def __init__(self, host: str, mappers: List[AbstractMapping], data_event: threading.Event):
+    def __init__(self,
+                 host: str,
+                 mappers: List[AbstractMapping],
+                 data_event: threading.Event,
+                 http_timeout: float = 20):
         super().__init__(mappers, data_event)
         self.host = host
+        self.http_timeout = http_timeout
 
         self._receiver = None
         self._port = 22222
 
     def refresh_broadcast(self, request_duration: float):
         log.debug("Re-requesting UDP broadcast")
-        packet = start_broadcast(self.host, request_duration)
+        packet = start_broadcast(self.host, request_duration, timeout=self.http_timeout)
         port = packet.broadcast_port
 
         if self._port != port:
