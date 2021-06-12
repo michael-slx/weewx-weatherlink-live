@@ -24,9 +24,10 @@ from typing import List
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
     THIndoorMapping, BaroMapping, AbstractMapping
-from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING
+from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING, \
+    KEY_MAX_NO_DATA_ITERATIONS
 from user.weatherlink_live.utils import to_list
-from weeutil.weeutil import to_bool, to_float
+from weeutil.weeutil import to_bool, to_float, to_int
 
 MAPPERS = {
     't': TMapping,
@@ -55,6 +56,7 @@ def create_configuration(config: dict, driver_name: str):
 
     host = driver_dict[KEY_DRIVER_HOST]
     polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, 10))
+    max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, 5))
     mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
     mappings = _parse_mappings(mapping_list)
 
@@ -63,12 +65,13 @@ def create_configuration(config: dict, driver_name: str):
     socket_timeout = to_float(config.get('socket_timeout', 20))
 
     config_obj = Configuration(
-        host,
-        mappings,
-        polling_interval,
-        log_success,
-        log_error,
-        socket_timeout
+        host=host,
+        mappings=mappings,
+        polling_interval=polling_interval,
+        max_no_data_iterations=max_no_data_iterations,
+        log_success=log_success,
+        log_error=log_error,
+        socket_timeout=socket_timeout
     )
     return config_obj
 
@@ -89,12 +92,14 @@ class Configuration(object):
                  host: str,
                  mappings: List[List[str]],
                  polling_interval: float,
+                 max_no_data_iterations: int,
                  log_success: bool,
                  log_error: bool,
                  socket_timeout: float):
         self.host = host
         self.mappings = mappings
         self.polling_interval = polling_interval
+        self.max_no_data_iterations = max_no_data_iterations
 
         self.log_success = log_success
         self.log_error = log_error

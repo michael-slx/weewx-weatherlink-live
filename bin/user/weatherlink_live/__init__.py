@@ -124,6 +124,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
         self.is_running = False
         self.scheduler = None
+        self.no_data_count = 0
         self.data_event = None
         self.poll_host = None
         self.push_host = None
@@ -143,6 +144,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 raise InitializationError("Error while starting driver: %s" % str(e)) from e
 
         while True:
+            self._check_no_data_count()
+
             try:
                 self.scheduler.raise_error()
                 self.poll_host.raise_error()
@@ -152,11 +155,16 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
             if self.poll_host.packets:
                 self._log_success("Emitting poll packet")
+                self._reset_data_count()
                 yield self.poll_host.packets.popleft()
 
-            if self.push_host.packets:
+            elif self.push_host.packets:
                 self._log_success("Emitting push (broadcast) packet")
+                self._reset_data_count()
                 yield self.push_host.packets.popleft()
+
+            else:
+                self._increase_no_data_count()
 
             log.debug("Waiting for new packet")
             self.data_event.wait(5)  # do a check every 5 secs
@@ -165,6 +173,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
     def start(self):
         if self.is_running:
             return
+
+        self._reset_data_count()
 
         self.is_running = True
         self.data_event = threading.Event()
@@ -198,8 +208,28 @@ class WeatherlinkLiveDriver(AbstractDevice):
         if self.push_host is not None:
             self.push_host.close()
 
+    def _increase_no_data_count(self):
+        self.no_data_count += 1
+        self._log_failure("No data since %d iterations" % self.no_data_count, logging.WARNING)
+
+    def _reset_data_count(self):
+        self.no_data_count = 0
+
+    def _check_no_data_count(self):
+        max_iterations = self.configuration.max_no_data_iterations
+        if max_iterations < 1:
+            raise ValueError("Max iterations without data must not be less than 1 (got: %d)" % max_iterations)
+
+        if self.no_data_count >= max_iterations:
+            raise WeeWxIOError("Received no data for %d iterations" % max_iterations)
+
     def _log_success(self, msg: str, level: int = logging.DEBUG) -> None:
         if not self.configuration.log_success:
+            return
+        log.log(level, msg)
+
+    def _log_failure(self, msg: str, level: int = logging.DEBUG) -> None:
+        if not self.configuration.log_error:
             return
         log.log(level, msg)
 

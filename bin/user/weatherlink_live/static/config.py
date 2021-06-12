@@ -21,3 +21,4 @@
 KEY_DRIVER_POLLING_INTERVAL = 'polling_interval'
 KEY_DRIVER_HOST = "host"
 KEY_DRIVER_MAPPING = 'mapping'
+KEY_MAX_NO_DATA_ITERATIONS = "max_no_data_iterations"
