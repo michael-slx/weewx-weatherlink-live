@@ -17,6 +17,7 @@ This drives requires **WeeWX 4**, **Python 3** and the Python **`requests` modul
 	- [Annotated example configuration](#annotated-example-configuration)
 	- [Options reference](#options-reference)
 		- [`polling_interval`](#pollinginterval)
+		- [`max_no_data_iterations`](#maxnodataiterations)
 		- [`host`](#host)
 		- [`mapping`](#mapping)
 	- [Available mappings](#available-mappings)
@@ -98,9 +99,6 @@ The units of all additionally defined observations are converted as specified in
     # use WLL driver
     driver = user.weatherlink_live
 
-    # Interval of polling data
-    polling_interval = 10
-
     # Host name or IP address of WeatherLink or AirLinks
     # Do not specify protocol or port
     host = weatherlink
@@ -126,7 +124,6 @@ The units of all additionally defined observations are converted as specified in
     [[rainSize]]
         extractor = last
 
-
 ```
 
 ### Options reference
@@ -137,6 +134,13 @@ The units of all additionally defined observations are converted as specified in
 **Default:** 10 seconds
 
 The interval in seconds or fractions thereof to wait between polling the WLL.
+
+#### `max_no_data_iterations`
+
+**Minimum:** 1
+**Default:** 5
+
+Count of iterations without any data to tolerate before raising an error.
 
 #### `host`
 
