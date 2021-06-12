@@ -86,3 +86,18 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 - **Add additional log messages when receiving and decoding broadcast packets**
   When receiving broadcast messages, the size of the packet will be logged and a message will be printed when creating packet objects.
 
+## Snapshot 2021-06-12
+
+- **Make HTTP requests honor `socket_timeout` option** in configuration
+
+- **Add data packet watchdog** ([#11](https://github.com/michael-slx/weewx-weatherlink-live/issues/11))
+
+  If no data packet is emitted for a configurable count of iterations, an error will be raised, in turn crashing the engine (and potentially triggering a restart).
+  The count of iterations can be configured by adding the `max_no_data_iterations` option in the driver's section (default is 5). An iteration will happen every 5 seconds when no data is received.
+
+  Thanks to user [cube1us](https://github.com/cube1us) debugging this issue.
+
+- **Remove `polling_interval` from default stanza**
+
+  It isn't a required option as a sensible default is set.
+
