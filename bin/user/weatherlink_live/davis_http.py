@@ -40,13 +40,13 @@ def start_broadcast(host: str, duration, timeout: float = 5):
         except Exception as e:
             error = e
             log.error(e)
-            log.error("HTTP Request failed. Retry #%d follows shortly" % i)
+            log.error("HTTP broadcast start request failed. Retry #%d follows shortly" % i)
         time.sleep(2.5)
 
     if error is not None:
         raise error
 
-    raise WeeWxIOError("HTTP request failed without setting an error")
+    raise WeeWxIOError("HTTP broadcast start request failed without setting an error")
 
 
 def request_current(host: str, timeout: float = 5):
@@ -60,10 +60,10 @@ def request_current(host: str, timeout: float = 5):
         except Exception as e:
             error = e
             log.error(e)
-            log.error("HTTP Request failed. Retry #%d follows shortly" % i)
+            log.error("HTTP conditions request failed. Retry #%d follows shortly" % i)
         time.sleep(2.5)
 
     if error is not None:
         raise error
 
-    raise WeeWxIOError("HTTP request failed without setting an error")
+    raise WeeWxIOError("HTTP conditions request failed without setting an error")
