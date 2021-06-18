@@ -210,7 +210,16 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
     def _increase_no_data_count(self):
         self.no_data_count += 1
-        self._log_failure("No data since %d iterations" % self.no_data_count, logging.WARNING)
+        self._log_failure("No data since %d iterations" % self.no_data_count, self._no_data_iteration_log_level)
+
+    @property
+    def _no_data_iteration_log_level(self):
+        max_iterations = self.configuration.max_no_data_iterations
+        if max_iterations <= 1:
+            return logging.WARNING
+
+        no_data_percentage = self.no_data_count / max_iterations
+        return logging.WARNING if no_data_percentage >= 0.5 else logging.INFO
 
     def _reset_data_count(self):
         self.no_data_count = 0
