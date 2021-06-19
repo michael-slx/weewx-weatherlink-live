@@ -1,4 +1,4 @@
-# Copyright © 2020 Michael Schantl and contributors
+# Copyright © 2020-2021 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,8 +62,8 @@ class AbstractMapping(object):
             self._log("Mapping not responsible: %s" % message)
 
     def _log_mapping_notInPacket(self):
-        if self.log_success: # not an error
-            self._log("Mapping failure: Observation not found in packet")
+        if self.log_success:  # because this is part of normal operation
+            self._log("Observation not found in packet")
 
     def _parse_option_int(self, opts: list, index: int) -> int:
         try:

@@ -1,5 +1,8 @@
 # GIT IGNORE LIST
 
+# Python cache
+__pycache__
+
 # IDE: Eclipse
 .project
 .pydevproject

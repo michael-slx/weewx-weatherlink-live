@@ -1,4 +1,4 @@
-# Copyright © 2020 Michael Schantl and contributors
+# Copyright © 2020-2021 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,3 +21,4 @@
 KEY_DRIVER_POLLING_INTERVAL = 'polling_interval'
 KEY_DRIVER_HOST = "host"
 KEY_DRIVER_MAPPING = 'mapping'
+KEY_MAX_NO_DATA_ITERATIONS = "max_no_data_iterations"

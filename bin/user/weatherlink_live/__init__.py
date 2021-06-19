@@ -1,4 +1,4 @@
-# Copyright © 2020 Michael Schantl and contributors
+# Copyright © 2020-2021 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ from weewx.drivers import AbstractDevice
 from weewx.engine import InitializationError
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.5"
+DRIVER_VERSION = "1.0.6"
 
 log = logging.getLogger(__name__)
 
@@ -100,6 +100,10 @@ def loader(config_dict, engine):
     return WeatherlinkLiveDriver(config_dict, engine)
 
 
+def confeditor_loader():
+    return WeatherlinkLiveConfEditor()
+
+
 class WeatherlinkLiveDriver(AbstractDevice):
     """
     Main driver class
@@ -120,6 +124,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
         self.is_running = False
         self.scheduler = None
+        self.no_data_count = 0
         self.data_event = None
         self.poll_host = None
         self.push_host = None
@@ -138,7 +143,14 @@ class WeatherlinkLiveDriver(AbstractDevice):
             except Exception as e:
                 raise InitializationError("Error while starting driver: %s" % str(e)) from e
 
+        # Either it's the first iteration of the driver
+        # or we've just returned a packet and are now resuming the driver.
+        self._reset_data_count()
+
+        self._log_success("Entering driver loop")
         while True:
+            self._check_no_data_count()
+
             try:
                 self.scheduler.raise_error()
                 self.poll_host.raise_error()
@@ -146,17 +158,22 @@ class WeatherlinkLiveDriver(AbstractDevice):
             except Exception as e:
                 raise WeeWxIOError("Error while receiving or processing packets: %s" % str(e)) from e
 
-            if self.poll_host.packets:
-                self._log_success("Emitting poll packet")
-                yield self.poll_host.packets.popleft()
-
-            if self.push_host.packets:
-                self._log_success("Emitting push (broadcast) packet")
-                yield self.push_host.packets.popleft()
-
             log.debug("Waiting for new packet")
             self.data_event.wait(5)  # do a check every 5 secs
             self.data_event.clear()
+
+            if self.poll_host.packets:
+                self._log_success("Emitting poll packet")
+                self._reset_data_count()
+                yield self.poll_host.packets.popleft()
+
+            elif self.push_host.packets:
+                self._log_success("Emitting push (broadcast) packet")
+                self._reset_data_count()
+                yield self.push_host.packets.popleft()
+
+            else:
+                self._increase_no_data_count()
 
     def start(self):
         if self.is_running:
@@ -164,10 +181,24 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
         self.is_running = True
         self.data_event = threading.Event()
-        self.poll_host = data_host.WllPollHost(self.configuration.host, self.mappers, self.data_event)
-        self.push_host = data_host.WLLBroadcastHost(self.configuration.host, self.mappers, self.data_event)
-        self.scheduler = scheduler.Scheduler(self.configuration.polling_interval, self.poll_host.poll,
-                                             self.push_host.refresh_broadcast, self.data_event)
+        self.poll_host = data_host.WllPollHost(
+            self.configuration.host,
+            self.mappers,
+            self.data_event,
+            self.configuration.socket_timeout
+        )
+        self.push_host = data_host.WLLBroadcastHost(
+            self.configuration.host,
+            self.mappers,
+            self.data_event,
+            self.configuration.socket_timeout
+        )
+        self.scheduler = scheduler.Scheduler(
+            self.configuration.polling_interval,
+            self.poll_host.poll,
+            self.push_host.refresh_broadcast,
+            self.data_event
+        )
 
     def closePort(self):
         """Close connection"""
@@ -180,7 +211,57 @@ class WeatherlinkLiveDriver(AbstractDevice):
         if self.push_host is not None:
             self.push_host.close()
 
-    def _log_success(self, msg: str, level: int = logging.INFO) -> None:
+    def _increase_no_data_count(self):
+        self.no_data_count += 1
+        self._log_failure("No data since %d iterations" % self.no_data_count, logging.WARNING)
+
+    def _reset_data_count(self):
+        self.no_data_count = 0
+
+    def _check_no_data_count(self):
+        max_iterations = self.configuration.max_no_data_iterations
+        if max_iterations < 1:
+            raise ValueError("Max iterations without data must not be less than 1 (got: %d)" % max_iterations)
+
+        if self.no_data_count >= max_iterations:
+            raise WeeWxIOError("Received no data for %d iterations" % max_iterations)
+
+    def _log_success(self, msg: str, level: int = logging.DEBUG) -> None:
         if not self.configuration.log_success:
             return
         log.log(level, msg)
+
+    def _log_failure(self, msg: str, level: int = logging.DEBUG) -> None:
+        if not self.configuration.log_error:
+            return
+        log.log(level, msg)
+
+
+class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
+    @property
+    def default_stanza(self):
+        return """
+#   This section configures the WeatherLink Live driver
+
+[WeatherLinkLive]
+    # Driver module
+    driver = user.weatherlink_live
+
+    # Host name or IP address of WeatherLink Live
+    host = weatherlink
+
+    # Mapping of transmitter ids to WeeWX records
+    # Default for Vantage Pro2
+    mapping = th:1, th_indoor, baro, rain:1, wind:1, thw:1, windchill:1
+"""
+
+    def modify_config(self, config_dict):
+        print("""
+Configuring accumulators for custom types.""")
+        config_dict.setdefault('Accumulator', {})
+
+        config_dict['Accumulator'].setdefault('rainCount', {})
+        config_dict['Accumulator']['rainCount']['extractor'] = 'sum'
+
+        config_dict['Accumulator'].setdefault('rainSize', {})
+        config_dict['Accumulator']['rainSize']['extractor'] = 'last'
