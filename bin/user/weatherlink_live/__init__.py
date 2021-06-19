@@ -143,6 +143,11 @@ class WeatherlinkLiveDriver(AbstractDevice):
             except Exception as e:
                 raise InitializationError("Error while starting driver: %s" % str(e)) from e
 
+        # Either it's the first iteration of the driver
+        # or we've just returned a packet and are now resuming the driver.
+        self._reset_data_count()
+
+        self._log_success("Entering driver loop")
         while True:
             self._check_no_data_count()
 
@@ -152,6 +157,10 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 self.push_host.raise_error()
             except Exception as e:
                 raise WeeWxIOError("Error while receiving or processing packets: %s" % str(e)) from e
+
+            log.debug("Waiting for new packet")
+            self.data_event.wait(5)  # do a check every 5 secs
+            self.data_event.clear()
 
             if self.poll_host.packets:
                 self._log_success("Emitting poll packet")
@@ -166,15 +175,9 @@ class WeatherlinkLiveDriver(AbstractDevice):
             else:
                 self._increase_no_data_count()
 
-            log.debug("Waiting for new packet")
-            self.data_event.wait(5)  # do a check every 5 secs
-            self.data_event.clear()
-
     def start(self):
         if self.is_running:
             return
-
-        self._reset_data_count()
 
         self.is_running = True
         self.data_event = threading.Event()
