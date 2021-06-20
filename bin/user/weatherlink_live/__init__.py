@@ -34,7 +34,7 @@ from weewx.drivers import AbstractDevice
 from weewx.engine import InitializationError
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.6"
+DRIVER_VERSION = "1.0.7"
 
 log = logging.getLogger(__name__)
 
@@ -144,7 +144,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 raise InitializationError("Error while starting driver: %s" % str(e)) from e
 
         # Either it's the first iteration of the driver
-        # or we've just returned a packet and are now resuming the driver.
+        # or we've just created an archive packet and are
+        # now resuming the driver.
         self._reset_data_count()
 
         self._log_success("Entering driver loop")
@@ -162,17 +163,22 @@ class WeatherlinkLiveDriver(AbstractDevice):
             self.data_event.wait(5)  # do a check every 5 secs
             self.data_event.clear()
 
-            if self.poll_host.packets:
+            emitted_poll_packet = False
+            emitted_push_packet = False
+
+            while self.poll_host.packets:
                 self._log_success("Emitting poll packet")
                 self._reset_data_count()
+                emitted_poll_packet = True
                 yield self.poll_host.packets.popleft()
 
-            elif self.push_host.packets:
+            while self.push_host.packets:
                 self._log_success("Emitting push (broadcast) packet")
                 self._reset_data_count()
+                emitted_push_packet = True
                 yield self.push_host.packets.popleft()
 
-            else:
+            if not emitted_poll_packet and not emitted_push_packet:
                 self._increase_no_data_count()
 
     def start(self):
