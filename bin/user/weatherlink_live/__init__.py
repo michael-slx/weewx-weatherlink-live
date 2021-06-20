@@ -162,17 +162,22 @@ class WeatherlinkLiveDriver(AbstractDevice):
             self.data_event.wait(5)  # do a check every 5 secs
             self.data_event.clear()
 
-            if self.poll_host.packets:
+            emitted_poll_packet = False
+            emitted_push_packet = False
+
+            while self.poll_host.packets:
                 self._log_success("Emitting poll packet")
                 self._reset_data_count()
+                emitted_poll_packet = True
                 yield self.poll_host.packets.popleft()
 
-            elif self.push_host.packets:
+            while self.push_host.packets:
                 self._log_success("Emitting push (broadcast) packet")
                 self._reset_data_count()
+                emitted_push_packet = True
                 yield self.push_host.packets.popleft()
 
-            else:
+            if not emitted_poll_packet and not emitted_push_packet:
                 self._increase_no_data_count()
 
     def start(self):
