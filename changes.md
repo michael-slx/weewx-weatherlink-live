@@ -78,7 +78,7 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 
 - **Retry failed HTTP requests**
   If HTTP requests fail, the driver will attempt to send them again up to 3 times. Should none of the attempts succeed, an exception will be raised.
-  
+
 - **Make HTTP requests honor `socket_timeout` option** in configuration ([#11](https://github.com/michael-slx/weewx-weatherlink-live/issues/11))
 
   Thanks to user [cube1us](https://github.com/cube1us) debugging this issue.
@@ -101,3 +101,8 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 - **Add additional log messages when receiving and decoding broadcast packets**
   When receiving broadcast messages, the size of the packet will be logged and a message will be printed when creating packet objects.
 
+## Version 1.0.7
+
+- **Fix packet emission loop**
+
+  With the changes of the previous release, push (broadcast) packets prevailed to the point where no push packets were emitted anymore.
