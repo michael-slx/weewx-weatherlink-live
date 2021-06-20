@@ -144,7 +144,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 raise InitializationError("Error while starting driver: %s" % str(e)) from e
 
         # Either it's the first iteration of the driver
-        # or we've just returned a packet and are now resuming the driver.
+        # or we've just created an archive packet and are
+        # now resuming the driver.
         self._reset_data_count()
 
         self._log_success("Entering driver loop")
