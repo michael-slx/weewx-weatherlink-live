@@ -35,6 +35,16 @@ from user.weatherlink_live.static.packets import DataStructureType, KEY_TEMPERAT
 log = logging.getLogger(__name__)
 
 
+def _parse_option_boolean(opts: list, check_for: str) -> bool:
+    if len(opts) < 1:
+        return False
+
+    uppercase_opts = [opt.upper() for opt in opts]
+    uppercase_check_for = check_for.upper()
+
+    return uppercase_check_for in uppercase_opts
+
+
 class AbstractMapping(object):
     def __init__(self, mapping_targets: Dict[str, List[str]], mapping_opts: list, used_map_targets: list,
                  log_success: bool = False, log_error: bool = True):
@@ -307,31 +317,45 @@ class WindChillMapping(AbstractMapping):
 class ThwMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
         super().__init__({
-            'thw': targets.THW
+            'thw': targets.THW,
+            'app_temp': targets.APPARENT_TEMPERATURE
         }, mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
+        self.is_app_temp = _parse_option_boolean(mapping_opts, 'appTemp')
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['thw']
+        target_app_temp = self.targets['app_temp']
 
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_THW_INDEX, DataStructureType.ISS, self.tx_id))
+
+        if self.is_app_temp:
+            self._set_record_entry(record, target_app_temp,
+                                   packet.get_observation(KEY_THW_INDEX, DataStructureType.ISS, self.tx_id))
 
 
 class ThswMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
         super().__init__({
-            'thsw': targets.THSW
+            'thsw': targets.THSW,
+            'app_temp': targets.APPARENT_TEMPERATURE
         }, mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
+        self.is_app_temp = _parse_option_boolean(mapping_opts, 'appTemp')
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['thsw']
+        target_app_temp = self.targets['app_temp']
 
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_THSW_INDEX, DataStructureType.ISS, self.tx_id))
+
+        if self.is_app_temp:
+            self._set_record_entry(record, target_app_temp,
+                                   packet.get_observation(KEY_THSW_INDEX, DataStructureType.ISS, self.tx_id))
 
 
 class SoilTempMapping(AbstractMapping):
