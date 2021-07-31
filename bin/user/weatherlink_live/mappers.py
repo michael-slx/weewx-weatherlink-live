@@ -30,7 +30,7 @@ from user.weatherlink_live.static.packets import DataStructureType, KEY_TEMPERAT
     KEY_HEAT_INDEX, KEY_WET_BULB, KEY_WIND_DIR, KEY_RAIN_AMOUNT_DAILY, KEY_RAIN_SIZE, KEY_RAIN_RATE, \
     KEY_SOLAR_RADIATION, KEY_UV_INDEX, KEY_WIND_CHILL, KEY_THW_INDEX, KEY_THSW_INDEX, KEY_SOIL_MOISTURE, \
     KEY_TEMPERATURE_LEAF_SOIL, KEY_LEAF_WETNESS, KEY_TEMPERATURE_INDOOR, KEY_HUMIDITY_INDOOR, KEY_DEW_POINT_INDOOR, \
-    KEY_HEAT_INDEX_INDOOR, KEY_BARO_ABSOLUTE, KEY_BARO_SEA_LEVEL, KEY_WIND_SPEED
+    KEY_HEAT_INDEX_INDOOR, KEY_BARO_ABSOLUTE, KEY_BARO_SEA_LEVEL, KEY_WIND_SPEED, KEY_BATTERY_FLAG
 
 log = logging.getLogger(__name__)
 
@@ -88,6 +88,9 @@ class AbstractMapping(object):
             )) from e
 
     def __search_multi_targets(self, available_map_targets_dict: dict = (), used_map_targets: list = []) -> dict:
+        if len(available_map_targets_dict) < 1:
+            return {}
+
         max_idx = min([len(l)
                        for l in available_map_targets_dict.values()]) - 1
 
@@ -450,3 +453,16 @@ class BaroMapping(AbstractMapping):
                                packet.get_observation(KEY_BARO_ABSOLUTE, DataStructureType.WLL_BARO))
         self._set_record_entry(record, target_sl,
                                packet.get_observation(KEY_BARO_SEA_LEVEL, DataStructureType.WLL_BARO))
+
+
+class BatteryStatusMapping(AbstractMapping):
+    def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
+        super().__init__({}, mapping_opts, used_map_targets, log_success, log_error)
+
+    def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
+        for tx in targets.BATTERY_STATUS.keys():
+            try:
+                self._set_record_entry(record, targets.BATTERY_STATUS[tx],
+                                       packet.get_observation(KEY_BATTERY_FLAG, tx=tx))
+            except NotInPacket:
+                pass  # Continue with other transmitters

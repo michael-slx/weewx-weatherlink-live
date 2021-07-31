@@ -23,7 +23,7 @@ from typing import List
 
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
-    THIndoorMapping, BaroMapping, AbstractMapping
+    THIndoorMapping, BaroMapping, AbstractMapping, BatteryStatusMapping
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING, \
     KEY_MAX_NO_DATA_ITERATIONS
 from user.weatherlink_live.utils import to_list
@@ -43,7 +43,8 @@ MAPPERS = {
     'soil_moist': SoilMoistureMapping,
     'leaf_wet': LeafWetnessMapping,
     'th_indoor': THIndoorMapping,
-    'baro': BaroMapping
+    'baro': BaroMapping,
+    'battery': BatteryStatusMapping
 }
 
 log = logging.getLogger(__name__)
