@@ -68,6 +68,8 @@ WET_BULB = ["wetbulb",
             "wetbulb6",
             "wetbulb7",
             "wetbulb8"]
+APPARENT_TEMPERATURE = ["appTemp",
+                        "appTemp1"]
 
 # WIND
 WIND_GUST_SPEED = ["windGust"]
@@ -130,3 +132,13 @@ BARO_SEA_LEVEL = ["altimeter"]  # the WLL doesn't use temperature to calculate s
 PM1 = ["pm1_0"]
 PM2p5 = ["pm2_5"]
 PM10 = ["pm10_0"]
+
+# Battery status
+BATTERY_STATUS = {1: 'batteryStatus1',
+                  2: 'batteryStatus2',
+                  3: 'batteryStatus3',
+                  4: 'batteryStatus4',
+                  5: 'batteryStatus5',
+                  6: 'batteryStatus6',
+                  7: 'batteryStatus7',
+                  8: 'batteryStatus8'}

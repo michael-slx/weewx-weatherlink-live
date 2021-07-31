@@ -106,3 +106,18 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 - **Fix packet emission loop**
 
   With the changes of the previous release, push (broadcast) packets prevailed to the point where no push packets were emitted anymore.
+
+## Version 1.0.8
+
+- **Add `appTemp` option for THW and THSW index mappers**
+
+  THW and THSW mappers can have an `appTemp` option. This will map the values to the `appTemp`/`appTemp1` field additionally to the respective custom fields.
+
+- **Add battery status flag mapper (`battery`)**
+
+  Mapper `battery` maps battery status indicator flags of transmitters to `batteryStatus` fields with respective transmitter ids (i.e. `batteryStatus1` to `batteryStatus8`).
+
+- **Fix error message when an unknown mapping type is used in configuration**
+
+- **Fix broken temperature-only mapping**
+

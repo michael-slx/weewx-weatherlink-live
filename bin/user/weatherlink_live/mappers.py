@@ -30,9 +30,19 @@ from user.weatherlink_live.static.packets import DataStructureType, KEY_TEMPERAT
     KEY_HEAT_INDEX, KEY_WET_BULB, KEY_WIND_DIR, KEY_RAIN_AMOUNT_DAILY, KEY_RAIN_SIZE, KEY_RAIN_RATE, \
     KEY_SOLAR_RADIATION, KEY_UV_INDEX, KEY_WIND_CHILL, KEY_THW_INDEX, KEY_THSW_INDEX, KEY_SOIL_MOISTURE, \
     KEY_TEMPERATURE_LEAF_SOIL, KEY_LEAF_WETNESS, KEY_TEMPERATURE_INDOOR, KEY_HUMIDITY_INDOOR, KEY_DEW_POINT_INDOOR, \
-    KEY_HEAT_INDEX_INDOOR, KEY_BARO_ABSOLUTE, KEY_BARO_SEA_LEVEL, KEY_WIND_SPEED
+    KEY_HEAT_INDEX_INDOOR, KEY_BARO_ABSOLUTE, KEY_BARO_SEA_LEVEL, KEY_WIND_SPEED, KEY_BATTERY_FLAG
 
 log = logging.getLogger(__name__)
+
+
+def _parse_option_boolean(opts: list, check_for: str) -> bool:
+    if len(opts) < 1:
+        return False
+
+    uppercase_opts = [opt.upper() for opt in opts]
+    uppercase_check_for = check_for.upper()
+
+    return uppercase_check_for in uppercase_opts
 
 
 class AbstractMapping(object):
@@ -78,6 +88,9 @@ class AbstractMapping(object):
             )) from e
 
     def __search_multi_targets(self, available_map_targets_dict: dict = (), used_map_targets: list = []) -> dict:
+        if len(available_map_targets_dict) < 1:
+            return {}
+
         max_idx = min([len(l)
                        for l in available_map_targets_dict.values()]) - 1
 
@@ -115,11 +128,13 @@ class TMapping(AbstractMapping):
             't': targets.TEMP
         }, mapping_opts, used_map_targets, log_success, log_error)
 
+        self.tx_id = self._parse_option_int(mapping_opts, 0)
+
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['t']
 
         self._set_record_entry(record, target,
-                               packet.get_observation(KEY_TEMPERATURE, DataStructureType.ISS, self.tx))
+                               packet.get_observation(KEY_TEMPERATURE, DataStructureType.ISS, self.tx_id))
 
 
 class THMapping(AbstractMapping):
@@ -305,31 +320,45 @@ class WindChillMapping(AbstractMapping):
 class ThwMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
         super().__init__({
-            'thw': targets.THW
+            'thw': targets.THW,
+            'app_temp': targets.APPARENT_TEMPERATURE
         }, mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
+        self.is_app_temp = _parse_option_boolean(mapping_opts, 'appTemp')
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['thw']
+        target_app_temp = self.targets['app_temp']
 
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_THW_INDEX, DataStructureType.ISS, self.tx_id))
+
+        if self.is_app_temp:
+            self._set_record_entry(record, target_app_temp,
+                                   packet.get_observation(KEY_THW_INDEX, DataStructureType.ISS, self.tx_id))
 
 
 class ThswMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
         super().__init__({
-            'thsw': targets.THSW
+            'thsw': targets.THSW,
+            'app_temp': targets.APPARENT_TEMPERATURE
         }, mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
+        self.is_app_temp = _parse_option_boolean(mapping_opts, 'appTemp')
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['thsw']
+        target_app_temp = self.targets['app_temp']
 
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_THSW_INDEX, DataStructureType.ISS, self.tx_id))
+
+        if self.is_app_temp:
+            self._set_record_entry(record, target_app_temp,
+                                   packet.get_observation(KEY_THSW_INDEX, DataStructureType.ISS, self.tx_id))
 
 
 class SoilTempMapping(AbstractMapping):
@@ -424,3 +453,16 @@ class BaroMapping(AbstractMapping):
                                packet.get_observation(KEY_BARO_ABSOLUTE, DataStructureType.WLL_BARO))
         self._set_record_entry(record, target_sl,
                                packet.get_observation(KEY_BARO_SEA_LEVEL, DataStructureType.WLL_BARO))
+
+
+class BatteryStatusMapping(AbstractMapping):
+    def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
+        super().__init__({}, mapping_opts, used_map_targets, log_success, log_error)
+
+    def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
+        for tx in targets.BATTERY_STATUS.keys():
+            try:
+                self._set_record_entry(record, targets.BATTERY_STATUS[tx],
+                                       packet.get_observation(KEY_BATTERY_FLAG, tx=tx))
+            except NotInPacket:
+                pass  # Continue with other transmitters
