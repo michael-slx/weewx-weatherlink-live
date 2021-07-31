@@ -115,11 +115,13 @@ class TMapping(AbstractMapping):
             't': targets.TEMP
         }, mapping_opts, used_map_targets, log_success, log_error)
 
+        self.tx_id = self._parse_option_int(mapping_opts, 0)
+
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['t']
 
         self._set_record_entry(record, target,
-                               packet.get_observation(KEY_TEMPERATURE, DataStructureType.ISS, self.tx))
+                               packet.get_observation(KEY_TEMPERATURE, DataStructureType.ISS, self.tx_id))
 
 
 class THMapping(AbstractMapping):
