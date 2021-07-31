@@ -34,6 +34,7 @@ KEY_TS = "ts"
 KEY_CONDITIONS = "conditions"
 KEY_DATA_STRUCTURE_TYPE = "data_structure_type"
 KEY_TRANSMITTER_ID = "txid"
+KEY_BATTERY_FLAG = "trans_battery_flag"
 
 KEY_TEMPERATURE = "temp"
 KEY_HUMIDITY = "hum"
