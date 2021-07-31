@@ -68,6 +68,8 @@ WET_BULB = ["wetbulb",
             "wetbulb6",
             "wetbulb7",
             "wetbulb8"]
+APPARENT_TEMPERATURE = ["appTemp",
+                        "appTemp1"]
 
 # WIND
 WIND_GUST_SPEED = ["windGust"]
