@@ -121,7 +121,7 @@ class Configuration(object):
         try:
             mapper_init = MAPPERS[type]
         except KeyError as e:
-            raise KeyError("Unknown mapper type: %s" % repr(mapper_type)) from e
+            raise KeyError("Unknown mapper type: %s" % repr(type)) from e
 
         mapper = mapper_init(further_opts, used_map_targets, self.log_success, self.log_error)
         return mapper
