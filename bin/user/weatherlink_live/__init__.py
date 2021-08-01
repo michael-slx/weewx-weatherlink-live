@@ -34,7 +34,7 @@ from weewx.drivers import AbstractDevice
 from weewx.engine import InitializationError
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.0.8"
+DRIVER_VERSION = "1.0.9"
 
 log = logging.getLogger(__name__)
 
@@ -258,7 +258,7 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
 
     # Mapping of transmitter ids to WeeWX records
     # Default for Vantage Pro2
-    mapping = th:1, th_indoor, baro, rain:1, wind:1, thw:1:appTemp, windchill:1, battery
+    mapping = th:1, th_indoor, baro, rain:1, wind:1, thw:1:appTemp, windchill:1, battery:1:outTemp:rain:wind
 """
 
     def modify_config(self, config_dict):

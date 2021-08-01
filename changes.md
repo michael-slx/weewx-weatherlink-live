@@ -121,3 +121,11 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 
 - **Fix broken temperature-only mapping**
 
+## Version 1.0.9
+
+- **Allow named mapping targets for battery status**
+
+  `battery` mapping now maps one transmitter only, but supports mapping to WeeWX's standard named battery status fields additionally to the numeric ones.
+
+- **Fix mapping targets being used multiple times**
+

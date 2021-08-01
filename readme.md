@@ -104,7 +104,7 @@ The units of all additionally defined observations are converted as specified in
     host = weatherlink
 
     # Mapping of transmitter ids
-    mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, battery
+    mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, battery:1:outTemp:rain:wind:uv
 
 [DataBindings]
 
@@ -161,23 +161,23 @@ List of sensors and their ids to import into WeeWX. Each mapping definition cons
 
 ### Available mappings
 
-| Mapping name                                   | Parameters                       | Description                                                  |
-| ---------------------------------------------- | -------------------------------- | ------------------------------------------------------------ |
-| **`t`** (temperature)                          | Sensor id                        | Maps outside temperature (no humidity)                       |
-| **`th`** (temperature, humidity)               | Sensor id                        | Maps outside temperature, humidity, heat index, dew point and wet bulb temperature |
-| **`wind`**                                     | Sensor id                        | Maps wind speed and direction to LOOP speed and direction.<br />An additional service then finds the maximum wind speed during the archive interval and assigns this speed and the respective direction to the gust observations. |
-| **`rain`**                                     | Sensor id                        | Maps rain amount and rate as well as count of spoon trips, rate of spoon trips and size of spoon.<br />Differential rain amount is calculated from daily rain measurement. |
-| **`solar`** (solar radiation)                  | Sensor id                        | Maps solar radiation                                         |
-| **`uv`** (UV index)                            | Sensor id                        | Maps UV index                                                |
-| **`windchill`** (wind chill)                   | Sensor id                        | Maps wind chill as reported by the respective transmitter.<br />_**Note:** Only available when thermometer and anemometer are connected to the same transmitter._ |
-| **`thw`** (THW index)                          | Sensor id, **Option:** `appTemp` | Maps THW (temperature, humidity, wind) index as reported by the respective transmitter.<br />_**Note:** Only available when thermometer, hygrometer and anemometer are connected to the same transmitter.<br />**Option `appTemp`:** When this option is set (see examples), the THW index value is additionally mapped to the `appTemp` field available in the WeeWX default schema. |
-| **`thsw`** (THSW index)                        | Sensor id, **Option:** `appTemp` | Maps THSW (temperature, humidity, solar, wind) index as reported by the respective transmitter.<br />_**Note:** Only available when thermometer, hygrometer, pyranometer and anemometer are connected to the same transmitter._<br />**Option `appTemp`:** When this option is set (see examples), the THSW index value is additionally mapped to the `appTemp` field available in the WeeWX default schema. |
-| **`soil_temp`** (soil temperature)             | Sensor id, Sensor number         | Maps soil temperature sensors from soil/leaf stations.       |
-| **`soil_moist`** (soil moisture)               | Sensor id, Sensor number         | Maps soil moisture sensors from soil/leaf stations.          |
-| **`leaf_wet`** (leaf wetness)                  | Sensor id, Sensor number         | Maps leaf wetness sensors from soil/leaf stations.           |
-| **`th_indoor`** (indoor temperature, humidity) | _none_                           | Maps indoor temperature, humidity, heat index and dew point as measured by the WLL itself |
-| **`baro`** (barometer)                         | _none_                           | Maps station (absolute) and sea-level pressure as measured/calculated by the WLL itself |
-| **`battery`**                                  | _none_                           | Maps the battery status indicator flag of all connected transmitters to the fields `batteryStatus1` to `batteryStatus8`. I.e. the value of transmitter 1 is mapped to `batteryStatus1`, transmitter 2 to `batteryStatus2` and so on.<br />**`0`** = Battery OK; **`1`** = Battery low |
+| Mapping name                                   | Parameters                                                   | Description                                                  |
+| ---------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **`t`** (temperature)                          | Sensor id                                                    | Maps outside temperature (no humidity)                       |
+| **`th`** (temperature, humidity)               | Sensor id                                                    | Maps outside temperature, humidity, heat index, dew point and wet bulb temperature |
+| **`wind`**                                     | Sensor id                                                    | Maps wind speed and direction to LOOP speed and direction.<br />An additional service then finds the maximum wind speed during the archive interval and assigns this speed and the respective direction to the gust observations. |
+| **`rain`**                                     | Sensor id                                                    | Maps rain amount and rate as well as count of spoon trips, rate of spoon trips and size of spoon.<br />Differential rain amount is calculated from daily rain measurement. |
+| **`solar`** (solar radiation)                  | Sensor id                                                    | Maps solar radiation                                         |
+| **`uv`** (UV index)                            | Sensor id                                                    | Maps UV index                                                |
+| **`windchill`** (wind chill)                   | Sensor id                                                    | Maps wind chill as reported by the respective transmitter.<br />_**Note:** Only available when thermometer and anemometer are connected to the same transmitter._ |
+| **`thw`** (THW index)                          | Sensor id,<br/>**Option:** `appTemp`                         | Maps THW (temperature, humidity, wind) index as reported by the respective transmitter.<br />_**Note:** Only available when thermometer, hygrometer and anemometer are connected to the same transmitter.<br />**Option `appTemp`:** When this option is set (see examples), the THW index value is additionally mapped to the `appTemp` field available in the WeeWX default schema. |
+| **`thsw`** (THSW index)                        | Sensor id,<br/>**Option:** `appTemp`                         | Maps THSW (temperature, humidity, solar, wind) index as reported by the respective transmitter.<br />_**Note:** Only available when thermometer, hygrometer, pyranometer and anemometer are connected to the same transmitter._<br />**Option `appTemp`:** When this option is set (see examples), the THSW index value is additionally mapped to the `appTemp` field available in the WeeWX default schema. |
+| **`soil_temp`** (soil temperature)             | Sensor id, Sensor number                                     | Maps soil temperature sensors from soil/leaf stations.       |
+| **`soil_moist`** (soil moisture)               | Sensor id, Sensor number                                     | Maps soil moisture sensors from soil/leaf stations.          |
+| **`leaf_wet`** (leaf wetness)                  | Sensor id, Sensor number                                     | Maps leaf wetness sensors from soil/leaf stations.           |
+| **`th_indoor`** (indoor temperature, humidity) | _none_                                                       | Maps indoor temperature, humidity, heat index and dew point as measured by the WLL itself |
+| **`baro`** (barometer)                         | _none_                                                       | Maps station (absolute) and sea-level pressure as measured/calculated by the WLL itself |
+| **`battery`**                                  | Sensor id, <br/>**Options:** `outTemp`, `rain`, `tx`, `uv`, `wind` | Maps the battery status indicator flag the specified transmitter to the fields `batteryStatus1` to `batteryStatus8`.<br />**Options:** One or more options can be specified to map the battery status of the respective transmitter to the named battery field.<br />_`outTemp`_ = `outTempBatteryStatus`; _`rain`_ = `rainBatteryStatus`; _`tx`_ = `txBatteryStatus`; _`uv`_ = `uvBatteryStatus`; _`wind`_ = `windBatteryStatus`<br />**`0`** = Battery OK; **`1`** = Battery low |
 
 ### Mapping examples
 
@@ -186,7 +186,7 @@ List of sensors and their ids to import into WeeWX. Each mapping definition cons
 This example is a valid mapping for a factory-default Vantage2 Pro Plus. All sensors are connected to the main ISS transmitter set to id 1.
 
 ```ini
-mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, battery
+mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, battery:1:outTemp:rain:wind:uv
 ```
 
 #### Vantage2 Pro Plus with additional anemometer transmitter
@@ -196,7 +196,7 @@ Same as above, except the wind sensor is connected to a separate transmitter wit
 Note that there is a configuration option on WeatherLink.com to import the wind measurement into the measurements of the main transmitter. If you enable this, the wind chill, THW and THSW values will still be calculated. Otherwise they should be removed from the mapping.
 
 ```ini
-mapping = th:1, th_indoor, baro, rain:1, wind:2, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, battery
+mapping = th:1, th_indoor, baro, rain:1, wind:2, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, battery:1:outTemp:rain:uv, battery:2:wind
 ```
 
 #### Vantage2 Pro Plus with separate transmitter for wind, solar and UV
@@ -206,7 +206,7 @@ Same as above, except the solar and UV sensors are also connected to the separat
 Note that THSW will not be calculated anymore since the solar sensor is now on a separate transmitter and unlike the wind measurements there's no configuration option.
 
 ```ini
-mapping = th:1, th_indoor, baro, rain:1, wind:2, uv:2, solar:2, thw:1:appTemp, windchill:1, battery
+mapping = th:1, th_indoor, baro, rain:1, wind:2, uv:2, solar:2, thw:1:appTemp, windchill:1, battery:1:outTemp:rain, battery:2:wind:uv
 ```
 
 #### Vantage2 Pro Plus with soil/leaf station
@@ -216,7 +216,7 @@ Same as the first example with an additional soil/leaf station. The agriculture 
 Note that the ordering of the mapping matters: Mappings named earlier are mapped to the "lower-numbered" database columns. Remember this fact if you wish to add additional sensors later on.
 
 ```ini
-mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, soil_temp:2:1, soil_temp:2:2, soil_temp:2:3, soil_temp:2:4, soil_moist:2:1, soil_moist:2:2, soil_moist:2:3, soil_moist:2:4, leaf_wet:2:1, lef_wet:2:2, battery
+mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, soil_temp:2:1, soil_temp:2:2, soil_temp:2:3, soil_temp:2:4, soil_moist:2:1, soil_moist:2:2, soil_moist:2:3, soil_moist:2:4, leaf_wet:2:1, lef_wet:2:2, battery:1:outTemp:wind, battery:2:tx
 ```
 
 ## Contribution
