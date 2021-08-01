@@ -134,11 +134,16 @@ PM2p5 = ["pm2_5"]
 PM10 = ["pm10_0"]
 
 # Battery status
-BATTERY_STATUS = {1: 'batteryStatus1',
-                  2: 'batteryStatus2',
-                  3: 'batteryStatus3',
-                  4: 'batteryStatus4',
-                  5: 'batteryStatus5',
-                  6: 'batteryStatus6',
-                  7: 'batteryStatus7',
-                  8: 'batteryStatus8'}
+BATTERY_STATUS = ['batteryStatus1',
+                  'batteryStatus2',
+                  'batteryStatus3',
+                  'batteryStatus4',
+                  'batteryStatus5',
+                  'batteryStatus6',
+                  'batteryStatus7',
+                  'batteryStatus8']
+BATTERY_STATUS_NAMED = {'outTemp': 'outTempBatteryStatus',
+                        'rain': 'rainBatteryStatus',
+                        'tx': 'txBatteryStatus',
+                        'uv': 'uvBatteryStatus',
+                        'wind': 'windBatteryStatus'}

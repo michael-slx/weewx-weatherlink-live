@@ -457,12 +457,23 @@ class BaroMapping(AbstractMapping):
 
 class BatteryStatusMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({}, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__({
+            'battery': targets.BATTERY_STATUS
+        }, mapping_opts, used_map_targets, log_success, log_error)
+
+        self.tx_id = self._parse_option_int(mapping_opts, 0)
+
+        further_opts = mapping_opts[1:]
+        try:
+            self.further_targets = [targets.BATTERY_STATUS_NAMED[key] for key in further_opts]
+        except KeyError as e:
+            raise KeyError("Invalid battery remap target") from e
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
-        for tx in targets.BATTERY_STATUS.keys():
-            try:
-                self._set_record_entry(record, targets.BATTERY_STATUS[tx],
-                                       packet.get_observation(KEY_BATTERY_FLAG, tx=tx))
-            except NotInPacket:
-                pass  # Continue with other transmitters
+        battery_num = self.targets['battery']
+
+        self._set_record_entry(record, battery_num,
+                               packet.get_observation(KEY_BATTERY_FLAG, tx=self.tx_id))
+        for target in self.further_targets:
+            self._set_record_entry(record, target,
+                                   packet.get_observation(KEY_BATTERY_FLAG, tx=self.tx_id))
