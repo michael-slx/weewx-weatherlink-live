@@ -111,7 +111,12 @@ class Configuration(object):
 
     def create_mappers(self) -> List[AbstractMapping]:
         used_record_keys = []
-        return [self._create_mapper(source_opts, used_record_keys) for source_opts in self.mappings]
+        mappers = []
+        for source_opts in self.mappings:
+            mapper = self._create_mapper(source_opts, used_record_keys)
+            mappers.append(mapper)
+            used_record_keys.extend(mapper.targets.values())
+        return mappers
 
     def _create_mapper(self, source_opts: List[str], used_map_targets: List[str]) -> AbstractMapping:
         type = source_opts[0]
