@@ -91,17 +91,16 @@ class AbstractMapping(object):
         if len(available_map_targets_dict) < 1:
             return {}
 
-        max_idx = min([len(l)
-                       for l in available_map_targets_dict.values()]) - 1
+        target_length = min([len(target_list) for target_list in available_map_targets_dict.values()])
+        for i in range(0, target_length):
+            map_targets = dict([
+                (k, v[i]) for k, v in available_map_targets_dict.items()
+            ])
 
-        for i in range(0, max_idx + 1):
-            map_targets = dict([(k, v[i])
-                                for k, v
-                                in available_map_targets_dict.items()])
             if any([map_target in used_map_targets for map_target in map_targets.values()]):
                 continue
-
-            return map_targets
+            else:
+                return map_targets
 
         raise RuntimeError("Mapping %s has all map targets used: %s" % (
             str(self), available_map_targets_dict
