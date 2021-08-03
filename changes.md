@@ -129,3 +129,8 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 
 - **Fix mapping targets being used multiple times**
 
+## Version 1.0.10
+
+- **Fix `THW`/`THSW` mappers occupying an `appTemp` field even if not marked with `appTemp`**
+- **Fix `THW`/`THSW` mappers not being able to resolve map targets if `appTemp` is already used**
+

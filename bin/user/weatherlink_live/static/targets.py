@@ -94,10 +94,14 @@ UV = ["UV"]
 WINDCHILL = ["windchill"]
 
 # THW
-THW = ["thw"]
+# Duplicated because we have two appTemp's too
+THW = ["thw",
+       "thw"]
 
 # THSW
-THSW = ["thsw"]
+# Duplicated because we have two appTemp's too
+THSW = ["thsw",
+        "thsw"]
 
 # SOIL TEMP
 SOIL_TEMP = ["soilTemp1",

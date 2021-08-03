@@ -46,14 +46,14 @@ def _parse_option_boolean(opts: list, check_for: str) -> bool:
 
 
 class AbstractMapping(object):
-    def __init__(self, mapping_targets: Dict[str, List[str]], mapping_opts: list, used_map_targets: list,
+    def __init__(self, mapping_opts: list, used_map_targets: list,
                  log_success: bool = False, log_error: bool = True):
         self.mapping_opts = mapping_opts
 
         self.log_success = log_success
         self.log_error = log_error
 
-        self.targets = self.__search_multi_targets(mapping_targets, used_map_targets)
+        self.targets = self.__search_multi_targets(self._map_target_dict, used_map_targets)
         self._log("Mapping targets: %s" % repr(self.targets))
 
     def __str__(self):
@@ -91,17 +91,16 @@ class AbstractMapping(object):
         if len(available_map_targets_dict) < 1:
             return {}
 
-        max_idx = min([len(l)
-                       for l in available_map_targets_dict.values()]) - 1
+        target_length = min([len(target_list) for target_list in available_map_targets_dict.values()])
+        for i in range(0, target_length):
+            map_targets = dict([
+                (k, v[i]) for k, v in available_map_targets_dict.items()
+            ])
 
-        for i in range(0, max_idx + 1):
-            map_targets = dict([(k, v[i])
-                                for k, v
-                                in available_map_targets_dict.items()])
             if any([map_target in used_map_targets for map_target in map_targets.values()]):
                 continue
-
-            return map_targets
+            else:
+                return map_targets
 
         raise RuntimeError("Mapping %s has all map targets used: %s" % (
             str(self), available_map_targets_dict
@@ -117,18 +116,27 @@ class AbstractMapping(object):
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         pass
 
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        raise NotImplementedError()
+
     def _set_record_entry(self, record: dict, key: str, value: float = None):
         record.update({key: value})
         self._log_mapping_success(key, value)
 
 
 class TMapping(AbstractMapping):
+
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            't': targets.TEMP
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            't': targets.TEMP
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['t']
@@ -139,15 +147,19 @@ class TMapping(AbstractMapping):
 
 class THMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
+
+        self.tx_id = self._parse_option_int(mapping_opts, 0)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
             't': targets.TEMP,
             'h': targets.HUM,
             'dp': targets.DEW_POINT,
             'hi': targets.HEAT_INDEX,
             'wb': targets.WET_BULB
-        }, mapping_opts, used_map_targets, log_success, log_error)
-
-        self.tx_id = self._parse_option_int(mapping_opts, 0)
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target_t = self.targets['t']
@@ -170,14 +182,18 @@ class THMapping(AbstractMapping):
 
 class WindMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
+
+        self.tx_id = self._parse_option_int(mapping_opts, 0)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
             'wind_dir': targets.WIND_DIR,
             'wind_speed': targets.WIND_SPEED,
             'gust_dir': targets.WIND_GUST_DIR,
             'gust_speed': targets.WIND_GUST_SPEED
-        }, mapping_opts, used_map_targets, log_success, log_error)
-
-        self.tx_id = self._parse_option_int(mapping_opts, 0)
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         if packet.data_source != PacketSource.WEATHER_PUSH:
@@ -195,13 +211,7 @@ class WindMapping(AbstractMapping):
 
 class RainMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'amount': targets.RAIN_AMOUNT,
-            'rate': targets.RAIN_RATE,
-            'count': targets.RAIN_COUNT,
-            'count_rate': targets.RAIN_COUNT_RATE,
-            'size': targets.RAIN_SIZE,
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         # 0: Reserved, 1: 0.01", 2: 0.2 mm, 3:  0.1 mm, 4: 0.001"
         self.rain_bucket_sizes = {
@@ -214,6 +224,16 @@ class RainMapping(AbstractMapping):
         self.tx_id = self._parse_option_int(mapping_opts, 0)
 
         self.last_daily_rain_count = None
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            'amount': targets.RAIN_AMOUNT,
+            'rate': targets.RAIN_RATE,
+            'count': targets.RAIN_COUNT,
+            'count_rate': targets.RAIN_COUNT_RATE,
+            'size': targets.RAIN_SIZE,
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         if packet.data_source != PacketSource.WEATHER_PUSH:
@@ -273,11 +293,15 @@ class RainMapping(AbstractMapping):
 
 class SolarMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'solar': targets.SOLAR_RADIATION
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            'solar': targets.SOLAR_RADIATION
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['solar']
@@ -286,14 +310,17 @@ class SolarMapping(AbstractMapping):
                                packet.get_observation(KEY_SOLAR_RADIATION, DataStructureType.ISS, self.tx_id))
 
 
-
 class UvMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'uv': targets.UV
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            'uv': targets.UV
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['uv']
@@ -304,11 +331,15 @@ class UvMapping(AbstractMapping):
 
 class WindChillMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'windchill': targets.WINDCHILL
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            'windchill': targets.WINDCHILL
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['windchill']
@@ -319,56 +350,76 @@ class WindChillMapping(AbstractMapping):
 
 class ThwMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'thw': targets.THW,
-            'app_temp': targets.APPARENT_TEMPERATURE
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        self.is_app_temp = _parse_option_boolean(mapping_opts, 'appTemp')
+
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
-        self.is_app_temp = _parse_option_boolean(mapping_opts, 'appTemp')
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        target_dict = {
+            'thw': targets.THW,
+            'app_temp': targets.APPARENT_TEMPERATURE
+        } if self.is_app_temp else {
+            'thw': targets.THW
+        }
+        return target_dict
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['thw']
-        target_app_temp = self.targets['app_temp']
 
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_THW_INDEX, DataStructureType.ISS, self.tx_id))
 
         if self.is_app_temp:
+            target_app_temp = self.targets['app_temp']
             self._set_record_entry(record, target_app_temp,
                                    packet.get_observation(KEY_THW_INDEX, DataStructureType.ISS, self.tx_id))
 
 
 class ThswMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'thsw': targets.THSW,
-            'app_temp': targets.APPARENT_TEMPERATURE
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        self.is_app_temp = _parse_option_boolean(mapping_opts, 'appTemp')
+
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
-        self.is_app_temp = _parse_option_boolean(mapping_opts, 'appTemp')
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        target_dict = {
+            'thsw': targets.THSW,
+            'app_temp': targets.APPARENT_TEMPERATURE
+        } if self.is_app_temp else {
+            'thsw': targets.THSW
+        }
+        return target_dict
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['thsw']
-        target_app_temp = self.targets['app_temp']
 
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_THSW_INDEX, DataStructureType.ISS, self.tx_id))
 
         if self.is_app_temp:
+            target_app_temp = self.targets['app_temp']
             self._set_record_entry(record, target_app_temp,
                                    packet.get_observation(KEY_THSW_INDEX, DataStructureType.ISS, self.tx_id))
 
 
 class SoilTempMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'soil_temp': targets.SOIL_TEMP
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
         self.sensor = self._parse_option_int(mapping_opts, 1)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            'soil_temp': targets.SOIL_TEMP
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['soil_temp']
@@ -380,12 +431,16 @@ class SoilTempMapping(AbstractMapping):
 
 class SoilMoistureMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'soil_moisture': targets.SOIL_MOISTURE
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
         self.sensor = self._parse_option_int(mapping_opts, 1)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            'soil_moisture': targets.SOIL_MOISTURE
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['soil_moisture']
@@ -397,13 +452,16 @@ class SoilMoistureMapping(AbstractMapping):
 
 class LeafWetnessMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'leaf_wetness': targets.LEAF_WETNESS
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
         self.sensor = self._parse_option_int(mapping_opts, 1)
 
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            'leaf_wetness': targets.LEAF_WETNESS
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target = self.targets['leaf_wetness']
@@ -415,12 +473,16 @@ class LeafWetnessMapping(AbstractMapping):
 
 class THIndoorMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
             't': targets.INDOOR_TEMP,
             'h': targets.INDOOR_HUM,
             'dp': targets.INDOOR_DEW_POINT,
             'hi': targets.INDOOR_HEAT_INDEX
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target_t = self.targets['t']
@@ -440,10 +502,14 @@ class THIndoorMapping(AbstractMapping):
 
 class BaroMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
             'baro_abs': targets.BARO_ABSOLUTE,
             'baro_sl': targets.BARO_SEA_LEVEL
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         target_abs = self.targets['baro_abs']
@@ -457,9 +523,7 @@ class BaroMapping(AbstractMapping):
 
 class BatteryStatusMapping(AbstractMapping):
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
-        super().__init__({
-            'battery': targets.BATTERY_STATUS
-        }, mapping_opts, used_map_targets, log_success, log_error)
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
         self.tx_id = self._parse_option_int(mapping_opts, 0)
 
@@ -468,6 +532,12 @@ class BatteryStatusMapping(AbstractMapping):
             self.further_targets = [targets.BATTERY_STATUS_NAMED[key] for key in further_opts]
         except KeyError as e:
             raise KeyError("Invalid battery remap target") from e
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return {
+            'battery': targets.BATTERY_STATUS
+        }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
         battery_num = self.targets['battery']
