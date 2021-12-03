@@ -134,3 +134,7 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 - **Fix `THW`/`THSW` mappers occupying an `appTemp` field even if not marked with `appTemp`**
 - **Fix `THW`/`THSW` mappers not being able to resolve map targets if `appTemp` is already used**
 
+## Version 1.0.11
+
+- Fix mapping targets of leaf temperature and wetness being specified as sets ([#15](https://github.com/michael-slx/weewx-weatherlink-live/issues/15))
+- Fix wrong formatting syntax for packet keys
