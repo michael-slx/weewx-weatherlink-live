@@ -52,9 +52,9 @@ KEY_RAIN_AMOUNT_DAILY = "rainfall_daily"
 KEY_SOLAR_RADIATION = "solar_rad"
 KEY_UV_INDEX = "uv_index"
 
-KEY_TEMPERATURE_LEAF_SOIL = "temp_%{n}"
-KEY_SOIL_MOISTURE = "moist_soil_%{n}"
-KEY_LEAF_WETNESS = "wet_leaf_%{n}"
+KEY_TEMPERATURE_LEAF_SOIL = "temp_%d"
+KEY_SOIL_MOISTURE = "moist_soil_%d"
+KEY_LEAF_WETNESS = "wet_leaf_%d"
 
 KEY_TEMPERATURE_INDOOR = "temp_in"
 KEY_HUMIDITY_INDOOR = "hum_in"
