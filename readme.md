@@ -216,7 +216,7 @@ Same as the first example with an additional soil/leaf station. The agriculture 
 Note that the ordering of the mapping matters: Mappings named earlier are mapped to the "lower-numbered" database columns. Remember this fact if you wish to add additional sensors later on.
 
 ```ini
-mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, soil_temp:2:1, soil_temp:2:2, soil_temp:2:3, soil_temp:2:4, soil_moist:2:1, soil_moist:2:2, soil_moist:2:3, soil_moist:2:4, leaf_wet:2:1, lef_wet:2:2, battery:1:outTemp:wind, battery:2:tx
+mapping = th:1, th_indoor, baro, rain:1, wind:1, uv:1, solar:1, thw:1, thsw:1:appTemp, windchill:1, soil_temp:2:1, soil_temp:2:2, soil_temp:2:3, soil_temp:2:4, soil_moist:2:1, soil_moist:2:2, soil_moist:2:3, soil_moist:2:4, leaf_wet:2:1, leaf_wet:2:2, battery:1:outTemp:wind, battery:2:tx
 ```
 
 ## Contribution
