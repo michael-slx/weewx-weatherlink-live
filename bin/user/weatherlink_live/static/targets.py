@@ -116,10 +116,10 @@ SOIL_MOISTURE = ["soilMoist1",
                  "soilMoist4"]
 
 # LEAF TEMP
-LEAF_TEMP = {"leafTemp1", "leafTemp2"}
+LEAF_TEMP = ["leafTemp1", "leafTemp2"]
 
 # LEAF WETNESS
-LEAF_WETNESS = {"leafWet1", "leafWet2"}
+LEAF_WETNESS = ["leafWet1", "leafWet2"]
 
 # WLL Thermo/Hygro (Indoor)
 INDOOR_TEMP = ["inTemp"]
