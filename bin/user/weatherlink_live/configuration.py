@@ -23,9 +23,9 @@ from typing import List
 
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
-    THIndoorMapping, BaroMapping, AbstractMapping, BatteryStatusMapping
+    THIndoorMapping, BaroMapping, AbstractMapping, BatteryStatusMapping, VoltageMapping, CommMapping
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING, \
-    KEY_MAX_NO_DATA_ITERATIONS
+    KEY_MAX_NO_DATA_ITERATIONS, KEY_DRIVER_WLCOM
 from user.weatherlink_live.utils import to_list
 from weeutil.weeutil import to_bool, to_float, to_int
 
@@ -44,7 +44,9 @@ MAPPERS = {
     'leaf_wet': LeafWetnessMapping,
     'th_indoor': THIndoorMapping,
     'baro': BaroMapping,
-    'battery': BatteryStatusMapping
+    'battery': BatteryStatusMapping,
+    'voltage': VoltageMapping,
+    'comm': CommMapping
 }
 
 log = logging.getLogger(__name__)
@@ -58,6 +60,7 @@ def create_configuration(config: dict, driver_name: str):
     host = driver_dict[KEY_DRIVER_HOST]
     polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, 10))
     max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, 5))
+    use_wlcom = to_bool(driver_dict.get(KEY_DRIVER_WLCOM, False))
     mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
     mappings = _parse_mappings(mapping_list)
 
@@ -72,6 +75,7 @@ def create_configuration(config: dict, driver_name: str):
         max_no_data_iterations=max_no_data_iterations,
         log_success=log_success,
         log_error=log_error,
+        use_wlcom=use_wlcom,
         socket_timeout=socket_timeout
     )
     return config_obj
@@ -96,11 +100,13 @@ class Configuration(object):
                  max_no_data_iterations: int,
                  log_success: bool,
                  log_error: bool,
+                 use_wlcom: bool,
                  socket_timeout: float):
         self.host = host
         self.mappings = mappings
         self.polling_interval = polling_interval
         self.max_no_data_iterations = max_no_data_iterations
+        self.use_wlcom = use_wlcom
 
         self.log_success = log_success
         self.log_error = log_error

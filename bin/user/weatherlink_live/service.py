@@ -28,7 +28,7 @@ from weewx.engine import StdService
 log = logging.getLogger(__name__)
 
 
-class WllWindGustService(StdService):
+class WllService(StdService):
     """Service for calculating ARCHIVE records from LOOP wind measurements"""
 
     def __init__(self, engine, config_dict, mappers: List[AbstractMapping], log_success: bool = False,
@@ -50,6 +50,9 @@ class WllWindGustService(StdService):
         self.bind(weewx.STARTUP, self.startup)
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
         self.bind(weewx.END_ARCHIVE_PERIOD, self.end_archive_period)
+
+    def register_ack_callback(self, archive_cb):
+        self.bind(weewx.NEW_ARCHIVE_RECORD, archive_cb)
 
     def _log_success(self, message: str, level: int = logging.DEBUG):
         if not self.log_success:

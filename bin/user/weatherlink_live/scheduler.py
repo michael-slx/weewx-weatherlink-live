@@ -54,7 +54,12 @@ class Scheduler(object):
             raise ValueError(
                 "Polling interval shouldn't be more than %d )got: %d)" % (POLL_INTERVAL_MAX, polling_interval))
 
-        self._poll_callback = poll_callback
+        if poll_callback:
+            self._poll_callback = poll_callback
+        else:
+            self._poll_callback = None
+            self.polling_interval = PUSH_REFRESH_INTERVAL
+
         self._push_refresh_callback = push_refresh_callback
         self.data_event = data_event
 
@@ -109,7 +114,8 @@ class Scheduler(object):
 
     def _do_tick(self):
         log.debug("Notifying poll callback")
-        self._poll_callback()
+        if self._poll_callback:
+            self._poll_callback()
 
         if self._push_refresh_ticks >= self._push_refresh_tick_count:
             log.debug("Notifying push refresh callback")
