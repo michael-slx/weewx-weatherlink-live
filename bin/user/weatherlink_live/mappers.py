@@ -197,7 +197,7 @@ class WindMapping(AbstractMapping):
         }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
-        if packet.data_source != PacketSource.WEATHER_PUSH and packet.data_source != PacketSource.WEATHER_WLCOM:
+        if packet.data_source not in [ PacketSource.WEATHER_PUSH, PacketSource.WEATHER_WLCOM ]: 
             self._log_mapping_notResponsible("Not a broadcast packet")
             return
 
