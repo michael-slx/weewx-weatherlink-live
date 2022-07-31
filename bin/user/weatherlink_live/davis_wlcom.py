@@ -198,8 +198,8 @@ class WllWlcomReceiver(object):
                     subpkt = data[10:]
                     txid = 1
                     while len(subpkt) > 8:
-                        # Can we derive txid from here somehow?
-                        length, statid, _, _, subtype, _, _ = struct.unpack('<hBBHBBB', subpkt[:9])
+                        # TODO: Use LSId to find TXId
+                        length, lsid, subtype, _ = struct.unpack('<HIBH', subpkt[:9])
                         if subtype == 0:
                             conditions = self._unpack(subpkt[9:], WLC_HIST_STA, txid)
                             txid += 1
