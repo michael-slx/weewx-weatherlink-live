@@ -237,6 +237,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 self.archive_interval_,
                 self.service,
                 self.mappers,
+                self.poll_host.txid,
                 self.data_event,
                 self.configuration.socket_timeout
             )

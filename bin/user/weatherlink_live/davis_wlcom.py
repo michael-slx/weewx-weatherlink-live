@@ -27,7 +27,6 @@ import struct
 import os
 
 from user.weatherlink_live.static.packets import packets, DataStructureType, KEY_TS, KEY_CONDITIONS, KEY_DATA_STRUCTURE_TYPE, KEY_TRANSMITTER_ID, WLC_START, WLC_END, WLC_SET_HISTRATE, WLC_LOOP_STA, WLC_LOOP_INT, WLC_LOOP_BAR, WLC_HIST_WLL, WLC_HIST_STA, WLC_HIST_INT, WLC_HIST_BAR
-from user.weatherlink_live.callback import PacketCallback
 from user.weatherlink_live.packets import WlWlcomPacket
 from user.weatherlink_live.service import WllService
 from weewx import WeeWxIOError
@@ -44,10 +43,10 @@ log = logging.getLogger(__name__)
 class WllWlcomReceiver(object):
     """Receive Wl.com transmission from WeatherLink Live"""
 
-    def __init__(self, archive_interval: int, service: WllService, port: int, callback: PacketCallback):
+    def __init__(self, archive_interval: int, service: WllService, port: int, host):
         self.archive_interval = archive_interval
         self.port = port
-        self.callback = callback
+        self.host = host
 
         self.wait_timeout = 5
 
@@ -91,7 +90,7 @@ class WllWlcomReceiver(object):
                 self.threads.append(thread)
 
         except Exception as e:
-            self.callback.on_packet_receive_error(e)
+            self.host.on_packet_receive_error(e)
             self.sock[0].shutdown(socket.SHUT_RDWR)
             self.sock[0].close()
             self.sock.pop(0)
@@ -167,8 +166,11 @@ class WllWlcomReceiver(object):
                     #subpkt = data[10:]
                     #txid = 1
                     #while len(subpkt) > 8:
-                    #    # Can we derive txid from here somehow?
-                    #    length, statid, _, _, subtype, _, _ = struct.unpack('<hBBHBBB', subpkt[:9])
+                    #    #  txid cached from http packets
+                    #    length, lsid, subtype, _, _ = struct.unpack('<HIBBB', subpkt[:9])
+                    #    if lsid in self.host.txid:
+                    #        txid = self.host.txid[lsid]
+                    #
                     #    if subtype == 0:
                     #        conditions = self._unpack(subpkt[9:], WLC_LOOP_STA, txid)
                     #        txid += 1
@@ -198,8 +200,11 @@ class WllWlcomReceiver(object):
                     subpkt = data[10:]
                     txid = 1
                     while len(subpkt) > 8:
-                        # TODO: Use LSId to find TXId
-                        length, lsid, subtype, _ = struct.unpack('<HIBH', subpkt[:9])
+                        # txid cached from http packets
+                        length, lsid, subtype, _, _ = struct.unpack('<HIBBB', subpkt[:9])
+                        if lsid in self.host.txid:
+                            txid = self.host.txid[lsid]
+
                         if subtype == 0:
                             conditions = self._unpack(subpkt[9:], WLC_HIST_STA, txid)
                             txid += 1
@@ -231,7 +236,7 @@ class WllWlcomReceiver(object):
                         ack.daemon = True
                         ack.start()
                 
-                    self.callback.on_packet_received(packet)
+                    self.host.on_packet_received(packet)
 
                     if setrate:
                         # Set history update rate to configured value
@@ -268,7 +273,7 @@ class WllWlcomReceiver(object):
                     log.info(f"Unknown packet type {frametype} length {len}")
 
         except Exception as e:
-            self.callback.on_packet_receive_error(e)
+            self.host.on_packet_receive_error(e)
             self.sock.remove(sock)
             sock.shutdown(socket.SHUT_RDWR)
             sock.close()

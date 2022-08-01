@@ -81,10 +81,15 @@ class WllPollHost(DataHost):
         super().__init__(mappers, data_event)
         self.host = host
         self.http_timeout = http_timeout
+        self.txid = dict()
 
     def poll(self):
         packet = request_current(self.host, timeout=self.http_timeout)
         log.debug("Polled current conditions")
+
+        for ls in packet._conditions:
+            if 'txid' in ls:
+                self.txid[ls['lsid']] = ls['txid']
 
         self._create_record(packet)
 
@@ -151,11 +156,13 @@ class WLLWlcomHost(DataHost, PacketCallback):
                  archive_interval: int,
                  service: WllService, 
                  mappers: List[AbstractMapping],
+                 txid: dict,
                  data_event: threading.Event,
                  http_timeout: float = 20):
         super().__init__(mappers, data_event)
         self.archive_interval = archive_interval
         self.http_timeout = http_timeout
+        self.txid = txid
 
         self._port = 5621
         self._receiver = WllWlcomReceiver(archive_interval, service, self._port, self)
