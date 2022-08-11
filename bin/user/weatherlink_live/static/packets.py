@@ -150,7 +150,7 @@ HIST_STA = (
         ('solar_rad_hi',          1,'h',     -1), ('solar_rad_hi_at',   1,'H', 0x7fff),
         ('unknown1',              1,'B',   0xff), ('uv_index',         10,'B',   0xff),
         ('uv_index_hi',          10,'B',   0xff), ('uv_index_hi_at',    1,'H', 0x7fff),
-        ('solar_rad_volt_last',1000,'H', 0xffff), ('uv_volt_last',   1000,'H', 0xffff),
+        ('solar_rad_volt_last',4000,'H', 0xffff), ('uv_volt_last',   1000,'H', 0xffff),
         ('reception',             1,'B',   0xff), ('rssi',              1,'b',  -0x80),
         ('error_packets',         1,'B',   0xff), ('resynchs',          1,'H', 0xffff),
         ('good_packets_streak',   1,'H', 0xffff), ('trans_battery_flag',1,'B',   0xff),
