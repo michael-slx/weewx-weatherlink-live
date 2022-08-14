@@ -270,7 +270,7 @@ class WllWlcomReceiver(object):
                 elif frametype == 8: # CFG OK
                     continue    # Ignore
                 else:
-                    log.info(f"Unknown packet type {frametype} length {len}")
+                    log.info(f"Unknown packet type {frametype} length {length}")
 
         except Exception as e:
             self.host.on_packet_receive_error(e)
