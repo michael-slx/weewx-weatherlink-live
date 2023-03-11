@@ -22,6 +22,10 @@
 Labels for displaying mappings
 """
 
+LABEL_SOURCE_TX_ID = "Transmitter %d"
+LABEL_SOURCE_WLL_BAROMETER = "Barometer"
+LABEL_SOURCE_WLL_TH = "Indoor"
+
 LABEL_TEMPERATURE = "Temperature"
 LABEL_HUMIDITY = "Humidity"
 LABEL_DEW_POINT = "Dew point"
