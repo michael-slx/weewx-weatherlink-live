@@ -125,11 +125,16 @@ class AbstractMapping(object):
         self._log_mapping_success(key, value)
 
     @property
+    def map_source_transmitter(self) -> str:
+        raise NotImplementedError()
+
+    @property
     def map_table(self) -> Dict[str, str | list[str]]:
         raise NotImplementedError()
 
 
 class TMapping(AbstractMapping):
+
     def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
         super().__init__(mapping_opts, used_map_targets, log_success, log_error)
 
@@ -146,6 +151,10 @@ class TMapping(AbstractMapping):
 
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_TEMPERATURE, DataStructureType.ISS, self.tx_id))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
     def map_table(self) -> Dict[str, str]:
@@ -189,6 +198,10 @@ class THMapping(AbstractMapping):
                                packet.get_observation(KEY_WET_BULB, DataStructureType.ISS, self.tx_id))
 
     @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
+    @property
     def map_table(self) -> Dict[str, str]:
         return {
             labels.LABEL_TEMPERATURE: self.targets['t'],
@@ -226,6 +239,10 @@ class WindMapping(AbstractMapping):
                                packet.get_observation(KEY_WIND_DIR, DataStructureType.ISS, self.tx_id))
         self._set_record_entry(record, target_speed,
                                packet.get_observation(KEY_WIND_SPEED, DataStructureType.ISS, self.tx_id))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
     def map_table(self) -> Dict[str, str]:
@@ -302,6 +319,10 @@ class RainMapping(AbstractMapping):
 
         self.last_daily_rain_count = current_daily_rain_count
 
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
     @staticmethod
     def _multiply(a: Optional[float], b: Optional[float]) -> Optional[float]:
         if a is None or b is None:
@@ -348,6 +369,10 @@ class SolarMapping(AbstractMapping):
                                packet.get_observation(KEY_SOLAR_RADIATION, DataStructureType.ISS, self.tx_id))
 
     @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
+    @property
     def map_table(self) -> Dict[str, str]:
         return {
             labels.LABEL_SOLAR_RADIATION: self.targets['solar'],
@@ -373,6 +398,10 @@ class UvMapping(AbstractMapping):
                                packet.get_observation(KEY_UV_INDEX, DataStructureType.ISS, self.tx_id))
 
     @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
+    @property
     def map_table(self) -> Dict[str, str]:
         return {
             labels.LABEL_UV_INDEX: self.targets['uv'],
@@ -396,6 +425,10 @@ class WindChillMapping(AbstractMapping):
 
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_WIND_CHILL, DataStructureType.ISS, self.tx_id))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
     def map_table(self) -> Dict[str, str]:
@@ -434,11 +467,15 @@ class ThwMapping(AbstractMapping):
                                    packet.get_observation(KEY_THW_INDEX, DataStructureType.ISS, self.tx_id))
 
     @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
+    @property
     def map_table(self) -> Dict[str, list[str]]:
         return {
-            labels.LABEL_THW_INDEX: [self.targets['thw'], self.targets['app_temp']] if self.is_app_temp else [self.targets['thw']],
+            labels.LABEL_THW_INDEX: [self.targets['thw'], self.targets['app_temp']] if self.is_app_temp else [
+                self.targets['thw']],
         }
-
 
 
 class ThswMapping(AbstractMapping):
@@ -471,9 +508,14 @@ class ThswMapping(AbstractMapping):
                                    packet.get_observation(KEY_THSW_INDEX, DataStructureType.ISS, self.tx_id))
 
     @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
+    @property
     def map_table(self) -> Dict[str, list[str]]:
         return {
-            labels.LABEL_THSW_INDEX: [self.targets['thsw'], self.targets['app_temp']] if self.is_app_temp else [self.targets['thsw']],
+            labels.LABEL_THSW_INDEX: [self.targets['thsw'], self.targets['app_temp']] if self.is_app_temp else [
+                self.targets['thsw']],
         }
 
 
@@ -496,6 +538,10 @@ class SoilTempMapping(AbstractMapping):
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_TEMPERATURE_LEAF_SOIL % self.sensor,
                                                       DataStructureType.LEAF_SOIL, self.tx_id))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
     def map_table(self) -> Dict[str, str]:
@@ -525,6 +571,10 @@ class SoilMoistureMapping(AbstractMapping):
                                                       DataStructureType.LEAF_SOIL, self.tx_id))
 
     @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
+    @property
     def map_table(self) -> Dict[str, str]:
         return {
             (labels.LABEL_SOIL_MOISTURE % self.sensor): self.targets['soil_moisture'],
@@ -550,6 +600,10 @@ class LeafWetnessMapping(AbstractMapping):
         self._set_record_entry(record, target,
                                packet.get_observation(KEY_LEAF_WETNESS % self.sensor,
                                                       DataStructureType.LEAF_SOIL, self.tx_id))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
     def map_table(self) -> Dict[str, str]:
@@ -587,6 +641,10 @@ class THIndoorMapping(AbstractMapping):
                                packet.get_observation(KEY_HEAT_INDEX_INDOOR, DataStructureType.WLL_TH))
 
     @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_WLL_TH
+
+    @property
     def map_table(self) -> Dict[str, str]:
         return {
             labels.LABEL_TEMPERATURE_INDOOR: self.targets['t'],
@@ -615,6 +673,10 @@ class BaroMapping(AbstractMapping):
                                packet.get_observation(KEY_BARO_ABSOLUTE, DataStructureType.WLL_BARO))
         self._set_record_entry(record, target_sl,
                                packet.get_observation(KEY_BARO_SEA_LEVEL, DataStructureType.WLL_BARO))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_WLL_BAROMETER
 
     @property
     def map_table(self) -> Dict[str, str]:
@@ -650,6 +712,10 @@ class BatteryStatusMapping(AbstractMapping):
         for target in self.further_targets:
             self._set_record_entry(record, target,
                                    packet.get_observation(KEY_BATTERY_FLAG, tx=self.tx_id))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
     def map_table(self) -> Dict[str, list[str]]:
