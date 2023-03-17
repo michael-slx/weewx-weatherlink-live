@@ -24,27 +24,28 @@ from typing import List
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
     THIndoorMapping, BaroMapping, AbstractMapping, BatteryStatusMapping
+from user.weatherlink_live.static import config as static_config
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING, \
     KEY_MAX_NO_DATA_ITERATIONS
 from user.weatherlink_live.utils import to_list
 from weeutil.weeutil import to_bool, to_float, to_int
 
 MAPPERS = {
-    't': TMapping,
-    'th': THMapping,
-    'wind': WindMapping,
-    'rain': RainMapping,
-    'solar': SolarMapping,
-    'uv': UvMapping,
-    'windchill': WindChillMapping,
-    'thw': ThwMapping,
-    'thsw': ThswMapping,
-    'soil_temp': SoilTempMapping,
-    'soil_moist': SoilMoistureMapping,
-    'leaf_wet': LeafWetnessMapping,
-    'th_indoor': THIndoorMapping,
-    'baro': BaroMapping,
-    'battery': BatteryStatusMapping
+    static_config.KEY_MAPPER_TEMPERATURE_ONLY: TMapping,
+    static_config.KEY_MAPPER_TEMPERATURE_HUMIDITY: THMapping,
+    static_config.KEY_MAPPER_WIND: WindMapping,
+    static_config.KEY_MAPPER_RAIN: RainMapping,
+    static_config.KEY_MAPPER_SOLAR: SolarMapping,
+    static_config.KEY_MAPPER_UV: UvMapping,
+    static_config.KEY_MAPPER_WINDCHILL: WindChillMapping,
+    static_config.KEY_MAPPER_THW: ThwMapping,
+    static_config.KEY_MAPPER_THSW: ThswMapping,
+    static_config.KEY_MAPPER_SOIL_TEMP: SoilTempMapping,
+    static_config.KEY_MAPPER_SOIL_MOIST: SoilMoistureMapping,
+    static_config.KEY_MAPPER_LEAF_WETNESS: LeafWetnessMapping,
+    static_config.KEY_MAPPER_TH_INDOOR: THIndoorMapping,
+    static_config.KEY_MAPPER_BARO: BaroMapping,
+    static_config.KEY_MAPPER_BATTERY: BatteryStatusMapping,
 }
 
 log = logging.getLogger(__name__)
