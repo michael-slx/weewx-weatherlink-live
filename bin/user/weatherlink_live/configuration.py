@@ -60,7 +60,7 @@ def create_configuration(config: dict, driver_name: str):
     polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, 10))
     max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, 5))
     mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
-    mappings = _parse_mappings(mapping_list)
+    mappings = parse_mapping_definitions(mapping_list)
 
     log_success = to_bool(config.get('log_success', False))
     log_error = to_bool(config.get('log_failure', True))
@@ -78,13 +78,49 @@ def create_configuration(config: dict, driver_name: str):
     return config_obj
 
 
-def _parse_mappings(mappings_list: List[str]) -> List[List[str]]:
-    mappings = [
+MappingDefinition = List[str]
+MappingDefinitionList = List[MappingDefinition]
+
+
+def parse_mapping_definitions(mappings_list: List[str]) -> MappingDefinitionList:
+    return [
         [mapping_opt.strip() for mapping_opt in mapping_opts.split(':')]
         for mapping_opts
         in mappings_list
     ]
-    return mappings
+
+
+def build_mapping_definitions(mapping_definitions: MappingDefinitionList) -> List[str]:
+    return [":".join(definition) for definition in mapping_definitions]
+
+
+def create_mappers(mapping_definitions: MappingDefinitionList, log_success: bool, log_error: bool) -> List[
+    AbstractMapping]:
+    used_record_keys = []
+    mappers = []
+    for source_opts in mapping_definitions:
+        mapper = _create_mapper(source_opts, used_record_keys, log_success, log_error)
+        mappers.append(mapper)
+        used_record_keys.extend(mapper.targets.values())
+    return mappers
+
+
+def _create_mapper(source_opts: List[str],
+                   used_map_targets: List[str],
+                   log_success: bool,
+                   log_error: bool) -> AbstractMapping:
+    mapper_type = source_opts[0]
+    further_opts = source_opts[1:]
+
+    log.debug("Creating mapper %s. Options: %s" % (mapper_type, further_opts))
+
+    try:
+        mapper_init = MAPPERS[mapper_type]
+    except KeyError as e:
+        raise KeyError("Unknown mapper type: %s" % repr(mapper_type)) from e
+
+    mapper = mapper_init(further_opts, used_map_targets, log_success, log_error)
+    return mapper
 
 
 class Configuration(object):
@@ -92,7 +128,7 @@ class Configuration(object):
 
     def __init__(self,
                  host: str,
-                 mappings: List[List[str]],
+                 mappings: MappingDefinitionList,
                  polling_interval: float,
                  max_no_data_iterations: int,
                  log_success: bool,
@@ -111,24 +147,4 @@ class Configuration(object):
         return str(self.__dict__)
 
     def create_mappers(self) -> List[AbstractMapping]:
-        used_record_keys = []
-        mappers = []
-        for source_opts in self.mappings:
-            mapper = self._create_mapper(source_opts, used_record_keys)
-            mappers.append(mapper)
-            used_record_keys.extend(mapper.targets.values())
-        return mappers
-
-    def _create_mapper(self, source_opts: List[str], used_map_targets: List[str]) -> AbstractMapping:
-        type = source_opts[0]
-        further_opts = source_opts[1:]
-
-        log.debug("Creating mapper %s. Options: %s" % (type, further_opts))
-
-        try:
-            mapper_init = MAPPERS[type]
-        except KeyError as e:
-            raise KeyError("Unknown mapper type: %s" % repr(type)) from e
-
-        mapper = mapper_init(further_opts, used_map_targets, self.log_success, self.log_error)
-        return mapper
+        return create_mappers(self.mappings, self.log_success, self.log_error)
