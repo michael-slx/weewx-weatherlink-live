@@ -62,8 +62,12 @@ def create_configuration(config: dict, driver_name: str):
     mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
     mappings = parse_mapping_definitions(mapping_list)
 
-    log_success = to_bool(config.get('log_success', False))
-    log_error = to_bool(config.get('log_failure', True))
+    log_success = to_bool(config.get(static_config.KEY_LOG_SUCCESS, False))
+    log_success = to_bool(driver_dict.get(static_config.KEY_LOG_SUCCESS, log_success))
+
+    log_error = to_bool(config.get(static_config.KEY_LOG_FAILURE, True))
+    log_error = to_bool(driver_dict.get(static_config.KEY_LOG_FAILURE, log_error))
+
     socket_timeout = to_float(config.get('socket_timeout', 20))
 
     config_obj = Configuration(

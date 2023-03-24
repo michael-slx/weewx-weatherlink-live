@@ -127,6 +127,12 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
 
     # Mapping of transmitter ids to WeeWX records
     mapping = ,
+
+    # Whether to log successful operations. Overrides top-level setting.
+    #log_success = False
+
+    # Whether to log unsuccessful operations. Overrides top-level setting.
+    #log_failure = True
 """
 
     def prompt_for_settings(self) -> Dict[str, Any]:
