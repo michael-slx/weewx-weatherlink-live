@@ -54,26 +54,28 @@ class AbstractMapping(object):
         self.log_error = log_error
 
         self.targets = self.__search_multi_targets(self._map_target_dict, used_map_targets)
-        self._log("Mapping targets: %s" % repr(self.targets))
+        self._log_success("Mapping targets: %s" % repr(self.targets))
 
     def __str__(self):
-        return "%s[%s]" % (type(self).__name__, self.mapping_opts)
+        return type(self).__name__ + (repr(self.mapping_opts) if self.mapping_opts else "")
 
-    def _log(self, message: str, level: int = logging.DEBUG):
-        log.log(level, "%s: %s" % (str(self), message))
+    def _log_success(self, message: str, level: int = logging.DEBUG) -> None:
+        if self.log_success:
+            log.log(level, "%s: %s" % (str(self), message))
+
+    def _log_error(self, message: str, level: int = logging.DEBUG) -> None:
+        if self.log_error:
+            log.log(level, "%s: %s" % (str(self), message))
 
     def _log_mapping_success(self, target: str, value: float = None):
-        if self.log_success:
-            self._log("Mapped: %s=%s" % (target, repr(value)))
+        self._log_success("Mapped: %s=%s" % (target, repr(value)))
 
     def _log_mapping_notResponsible(self, message: str):
         """Logged when the mapper doesn't feel responsible for a packet"""
-        if self.log_success:  # because this is part of normal operation
-            self._log("Mapping not responsible: %s" % message)
+        self._log_success("Mapping not responsible: %s" % message)
 
     def _log_mapping_notInPacket(self):
-        if self.log_success:  # because this is part of normal operation
-            self._log("Observation not found in packet")
+        self._log_success("Observation not found in packet")
 
     def _parse_option_int(self, opts: list, index: int) -> int:
         try:
@@ -300,14 +302,14 @@ class RainMapping(AbstractMapping):
 
         current_daily_rain_count = packet.get_observation(KEY_RAIN_AMOUNT_DAILY, DataStructureType.ISS, self.tx_id)
         if current_daily_rain_count is None:
-            self._log("Daily rain count not in packet. Skipping diff calculation")
+            self._log_error("Daily rain count not in packet. Skipping diff calculation")
             return
 
         if self.last_daily_rain_count is None:
-            self._log("First daily rain value", logging.INFO)
+            self._log_success("First daily rain value", logging.INFO)
 
         elif self.last_daily_rain_count > current_daily_rain_count:
-            self._log("Last daily rain (%d) larger than current (%d). Probably reset" % (
+            self._log_success("Last daily rain (%d) larger than current (%d). Probably reset" % (
                 self.last_daily_rain_count, current_daily_rain_count), logging.INFO)
             self._set_record_entry(record, target_count, current_daily_rain_count)
             self._set_record_entry(record, target_amount, self._multiply(current_daily_rain_count, rain_bucket_factor))
