@@ -95,13 +95,13 @@ class WeatherlinkLiveDriver(AbstractDevice):
             emitted_push_packet = False
 
             while self.poll_host.packets:
-                self._log_success("Emitting poll packet")
+                self._log_success("Emitting poll packet", level=logging.INFO)
                 self._reset_data_count()
                 emitted_poll_packet = True
                 yield self.poll_host.packets.popleft()
 
             while self.push_host.packets:
-                self._log_success("Emitting push (broadcast) packet")
+                self._log_success("Emitting push (broadcast) packet", level=logging.INFO)
                 self._reset_data_count()
                 emitted_push_packet = True
                 yield self.push_host.packets.popleft()
