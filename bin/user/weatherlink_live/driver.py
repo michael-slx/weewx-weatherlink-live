@@ -85,7 +85,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 self.poll_host.raise_error()
                 self.push_host.raise_error()
             except Exception as e:
-                raise WeeWxIOError("Error while receiving or processing packets: %s" % str(e)) from e
+                raise WeeWxIOError("Error while receiving or processing packets: %s" % repr(e)) from e
 
             log.debug("Waiting for new packet")
             self.data_event.wait(5)  # do a check every 5 secs
