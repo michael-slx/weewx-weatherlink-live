@@ -30,6 +30,10 @@ from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY
 from user.weatherlink_live.utils import to_list
 from weeutil.weeutil import to_bool, to_float, to_int
 
+POLLING_INTERVAL_MIN = 10
+POLLING_INTERVAL_DEFAULT = POLLING_INTERVAL_MIN
+NO_DATA_ITERATIONS_DEFAULT = 5
+
 MAPPERS = {
     static_config.KEY_MAPPER_TEMPERATURE_ONLY: TMapping,
     static_config.KEY_MAPPER_TEMPERATURE_HUMIDITY: THMapping,
@@ -57,10 +61,20 @@ def create_configuration(config: dict, driver_name: str):
     driver_dict = config[driver_name]
 
     host = driver_dict[KEY_DRIVER_HOST]
-    polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, 10))
-    max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, 5))
+
+    polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, POLLING_INTERVAL_DEFAULT))
+    if polling_interval < POLLING_INTERVAL_MIN:
+        raise ValueError(
+            "Polling interval has to be at least %d seconds (got: %d)" % (POLLING_INTERVAL_MIN, polling_interval))
+
+    max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, NO_DATA_ITERATIONS_DEFAULT))
+    if max_no_data_iterations < 1:
+        raise ValueError("%s has to be at least 1" % KEY_MAX_NO_DATA_ITERATIONS)
+
     mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
     mappings = parse_mapping_definitions(mapping_list)
+    if len(mappings) < 1:
+        raise ValueError("At least 1 mapping has to be defined")
 
     log_success = to_bool(config.get(static_config.KEY_LOG_SUCCESS, False))
     log_success = to_bool(driver_dict.get(static_config.KEY_LOG_SUCCESS, log_success))
