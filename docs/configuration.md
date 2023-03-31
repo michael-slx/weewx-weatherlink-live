@@ -11,6 +11,8 @@ This document is a reference for all available configuration options.
   - [`mapping`](#mapping)
   - [`polling_interval`](#polling_interval)
   - [`max_no_data_iterations`](#max_no_data_iterations)
+  - [`log_success`](#log_success)
+  - [`log_failure`](#log_failure)
 - [Defining mappings](#defining-mappings)
   - [Why are mappings necessary?](#why-are-mappings-necessary)
   - [How are mappings defined?](#how-are-mappings-defined)
@@ -100,6 +102,26 @@ The interval in seconds to wait between retrieving a full data update from the W
 Count of iterations without any data to tolerate before raising an error.
 
 The driver checks for the availability of new data at least every 5 secons. If no data is available for the specified number of iterations, an error is raised.
+
+### `log_success`
+
+**Required:** No<br>
+**Type:** Boolean<br>
+**Default:** Global value, `False`
+
+Enables or disables the logging of successful operations specific to the driver.
+
+Overrides the global option.
+
+### `log_failure`
+
+**Required:** No<br>
+**Type:** Boolean<br>
+**Default:** Global value, `True`
+
+Enables or disables the logging of erroneous operations specific to the driver.
+
+Overrides the global option.
 
 ## Defining mappings
 
