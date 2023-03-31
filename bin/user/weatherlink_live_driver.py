@@ -18,27 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-WeeWX driver for WeatherLink Live and AirLink
-"""
+from user import weatherlink_live
 
-import user.weatherlink_live.db_schema
-from user.weatherlink_live.config_editor import WeatherlinkLiveConfEditor
-from user.weatherlink_live.configurator import WeatherlinkLiveConfigurator
-from user.weatherlink_live.driver import WeatherlinkLiveDriver
-from user.weatherlink_live.static.version import DRIVER_NAME, DRIVER_VERSION
+DRIVER_NAME = weatherlink_live.DRIVER_NAME
+DRIVER_VERSION = weatherlink_live.DRIVER_VERSION
 
-schema = db_schema.db_schema
-db_schema.configure_units()
+schema = weatherlink_live.schema
 
-
-def loader(config_dict, engine):
-    return WeatherlinkLiveDriver(config_dict, engine)
-
-
-def configurator_loader(config_dict):
-    return WeatherlinkLiveConfigurator()
-
-
-def confeditor_loader():
-    return WeatherlinkLiveConfEditor()
+loader = weatherlink_live.loader
+confeditor_loader = weatherlink_live.confeditor_loader
+configurator_loader = weatherlink_live.configurator_loader
