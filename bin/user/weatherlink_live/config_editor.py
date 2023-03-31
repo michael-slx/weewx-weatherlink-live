@@ -28,13 +28,25 @@ _MAPPER_TEMPLATE_LIST = List[Tuple[str, List[str]]]
 
 _MAPPINGS_TEMPLATES: _MAPPER_TEMPLATE_LIST = [
     (
-        "Vantage Pro 2",
-        ["th:1", "rain:1", "wind:1", "windchill:1", "thw:1:appTemp", "th_indoor", "baro", "battery:1:outTemp:rain:wind"]
+        "Vantage Pro2 or Vantage Vue",
+        ['th:1', 'rain:1', 'wind:1', 'windchill:1', 'thw:1:appTemp', 'th_indoor', "baro", 'battery:1:outTemp:rain:wind']
     ),
     (
-        "Vantage Pro 2 Plus",
-        ["th:1", "rain:1", "wind:1", "windchill:1", "solar:1", "uv:1", "thw:1", "thsw:1:appTemp", "th_indoor", "baro",
-         "battery:1:outTemp:rain:wind"]
+        "Vantage Pro2 Plus",
+        ['th:1', 'rain:1', 'wind:1', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'th_indoor', 'baro',
+         'battery:1:outTemp:rain:wind:uv']
+    ),
+    (
+        "Vantage Pro2 Plus with additional anemometer transmitter",
+        ['th:1', 'rain:1', 'wind:2', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'th_indoor', 'baro',
+         'battery:1:outTemp:rain:uv', 'battery:2:wind']
+    ),
+    (
+        "Vantage Pro2 Plus with soil/leaf station",
+        ['th:1', 'rain:1', 'wind:1', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'soil_temp:2:1',
+         'soil_temp:2:2', 'soil_temp:2:3', 'soil_temp:2:4', 'soil_moist:2:1', 'soil_moist:2:2', 'soil_moist:2:3',
+         'soil_moist:2:4', 'leaf_wet:2:1', 'leaf_wet:2:2', 'th_indoor', 'baro', 'battery:1:outTemp:rain:wind:uv',
+         'battery:2:tx']
     ),
 ]
 
