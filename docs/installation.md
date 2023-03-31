@@ -97,8 +97,10 @@ Additional information on how to manually configure mappings can be found in the
 
 ```
 Mapping templates:
-  0: Vantage Pro 2
-  1: Vantage Pro 2 Plus
+  0: Vantage Pro2 or Vantage Vue
+  1: Vantage Pro2 Plus
+  2: Vantage Pro2 Plus with additional anemometer transmitter
+  3: Vantage Pro2 Plus with soil/leaf station
 Use template (blank for none) []: 1
 ```
 
