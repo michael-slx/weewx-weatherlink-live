@@ -332,7 +332,9 @@ mapping = th:1, rain:1, wind:1, windchill:1, thw:1:appTemp, battery:1:outTemp:ra
 
 This example is a valid mapping for a factory-default Vantage2 Pro Plus. All sensors are connected to the main ISS transmitter set to id 1.
 
-> mapping = th:1, rain:1, wind:1, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1:outTemp:rain:wind:uv
+```ini
+mapping = th:1, rain:1, wind:1, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1:outTemp:rain:wind:uv
+```
 
 #### Vantage Pro2 Plus with additional anemometer transmitter
 
