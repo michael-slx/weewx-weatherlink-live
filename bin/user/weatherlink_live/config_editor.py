@@ -50,9 +50,8 @@ _MAPPINGS_TEMPLATES: _MAPPER_TEMPLATE_LIST = [
     ),
 ]
 
-# TODO: Add URLs
-_URL_HELP_INSTALLATION = "http://example.com/"
-_URL_HELP_MAPPING_CONFIGURATION = "http://example.com/"
+_URL_HELP_INSTALLATION = "https://github.com/michael-slx/weewx-weatherlink-live/blob/develop/docs/installation.md"
+_URL_HELP_MAPPING_CONFIGURATION = "https://github.com/michael-slx/weewx-weatherlink-live/blob/develop/docs/configuration.md#defining-mappings"
 
 
 def _prompt_host(old_host: str | None) -> str:
