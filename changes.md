@@ -138,3 +138,35 @@ The driver only uses it for the rate of the rain collector spoon tripping.
 
 - Fix mapping targets of leaf temperature and wetness being specified as sets ([#15](https://github.com/michael-slx/weewx-weatherlink-live/issues/15))
 - Fix wrong formatting syntax for packet keys
+
+## Version 1.1
+
+- **Add command to print mappings**
+
+Use the shell command `wee_device --print-mapping` to display a table of mappings. The command will print a table grouped by transmitters and mappings.
+
+- **Add alias for driver entry point and schema definition**
+
+An alias for the driver entry point and the database schema definition was added so that the driver is recognized by the setup utility `wee_config`.
+
+For backwards compatibility, the old entry point can still be used.
+
+- **Add interactive setup utility**
+
+Using the command `wee_config` to run an interactive setup will now bring up prompts specifically for this driver. The hostname as well as mappings can be configured this way.
+
+- **Add driver-specific logging settings**
+
+Logging of successful and erroneous operations can now be separately configured for the driver using the `log_success` and `log_failure` options respectively. Driver-specific options take precedence over global options.
+
+- **Tweak the levels of some log messages**
+
+In light of the change listed above, the level of some log messages was tweaked. Most notably, the message that a new packet was received was raised to the `INFO` level. You can disable these by setting `log_success` to `false` either globally or just for the driver.
+
+- **Configuration value boundary checks**
+
+Configuration values are checked to be within bounds immediately during initialization.
+
+- **New documentation**
+
+Documentation was expanded and split into multiple separate documents.
