@@ -29,6 +29,8 @@ from weewx import WeeWxIOError
 from weewx.drivers import AbstractDevice
 from weewx.engine import InitializationError
 
+TIMEOUT_DATA_EVENT = 2.5 * 3
+
 log = logging.getLogger(__name__)
 
 
@@ -88,7 +90,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 raise WeeWxIOError("Error while receiving or processing packets: %s" % repr(e)) from e
 
             log.debug("Waiting for new packet")
-            self.data_event.wait(5)  # do a check every 5 secs
+            self.data_event.wait(TIMEOUT_DATA_EVENT)
             self.data_event.clear()
 
             emitted_poll_packet = False
