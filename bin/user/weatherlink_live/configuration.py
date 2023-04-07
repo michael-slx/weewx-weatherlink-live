@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 import logging
-from typing import List
+from typing import List, Tuple
 
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
@@ -76,6 +76,9 @@ def create_configuration(config: dict, driver_name: str):
     if len(mappings) < 1:
         raise ValueError("At least 1 mapping has to be defined")
 
+    sensors_section = driver_dict.get(static_config.KEY_SECTION_SENSORS, dict())
+    sensor_definition_set = parse_sensor_definitions(sensors_section)
+
     log_success = to_bool(config.get(static_config.KEY_LOG_SUCCESS, False))
     log_success = to_bool(driver_dict.get(static_config.KEY_LOG_SUCCESS, log_success))
 
@@ -91,13 +94,58 @@ def create_configuration(config: dict, driver_name: str):
         max_no_data_iterations=max_no_data_iterations,
         log_success=log_success,
         log_error=log_error,
-        socket_timeout=socket_timeout
+        socket_timeout=socket_timeout,
+        sensor_definition_set=sensor_definition_set,
     )
     return config_obj
 
 
 MappingDefinition = List[str]
 MappingDefinitionList = List[MappingDefinition]
+
+SensorDefinition = Tuple[int, str, int | None]
+SensorDefinitionSet = List[SensorDefinition]
+
+
+def parse_sensor_definitions(sensors_section: dict) -> SensorDefinitionSet:
+    definition_set = set()
+    for transmitter_id in range(1, 8):
+        sensor_key = str(transmitter_id)
+        tx_sensor_list = to_list(sensors_section.get(sensor_key, []))
+
+        new_definitions = _parse_tx_sensor_definitions(transmitter_id, tx_sensor_list)
+        definition_set.update(new_definitions)
+
+    return sorted(definition_set)
+
+
+def _parse_tx_sensor_definitions(transmitter_id: int, tx_sensor_list: List[str]) -> SensorDefinitionSet:
+    sensor_definitions: SensorDefinitionSet = list()
+
+    for sensor_str in tx_sensor_list:
+        clean_str = sensor_str.lower().strip()
+
+        argument_count = clean_str.count(':')
+        if argument_count < 1:
+            sensor_def: SensorDefinition = (transmitter_id, clean_str, None)
+
+        elif argument_count == 1:
+            sensor_type, sensor_num_str = sensor_str.split(':', 2)
+
+            try:
+                sensor_num = int(sensor_num_str)
+            except ValueError as e:
+                raise ValueError("Failed to parse sensor number in sensor definition: %s" % repr(sensor_num_str)) from e
+
+            sensor_def: SensorDefinition = (transmitter_id, sensor_type, sensor_num)
+
+        else:
+            raise ValueError(
+                "Invalid number of arguments (%d) for sensor definition: %s" % (argument_count, sensor_str))
+
+        sensor_definitions.append(sensor_def)
+
+    return sensor_definitions
 
 
 def parse_mapping_definitions(mappings_list: List[str]) -> MappingDefinitionList:
@@ -151,11 +199,17 @@ class Configuration(object):
                  max_no_data_iterations: int,
                  log_success: bool,
                  log_error: bool,
-                 socket_timeout: float):
+                 socket_timeout: float,
+                 sensor_definition_set: SensorDefinitionSet | None = None):
         self.host = host
         self.mappings = mappings
         self.polling_interval = polling_interval
         self.max_no_data_iterations = max_no_data_iterations
+
+        if sensor_definition_set is not None:
+            self.sensor_definition_set = sensor_definition_set
+        else:
+            self.sensor_definition_set = dict()
 
         self.log_success = log_success
         self.log_error = log_error
