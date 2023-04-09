@@ -1,4 +1,4 @@
-# Copyright © 2020-2021 Michael Schantl and contributors
+# Copyright © 2020-2023 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,17 @@
 Packets as returned by the API
 """
 import logging
-from typing import Optional, Any, List
+from typing import Optional, Any, List, Dict, Set, Tuple
 
 import weewx
 from user.weatherlink_live.static import PacketSource
 from user.weatherlink_live.static.packets import DataStructureType
 
 log = logging.getLogger(__name__)
+
+TxEntry = Dict[str, Optional[Any]]
+ConditionSet = List[TxEntry]
+TxList = List[Tuple[DataStructureType, int | None]]
 
 
 class NotInPacket(Exception):
@@ -68,7 +72,7 @@ class DavisConditionsPacket(DavisPacket):
         raise NotImplementedError("Abstract type")
 
     @property
-    def _conditions(self) -> dict:
+    def _conditions(self) -> ConditionSet:
         """Return list of dictionaries with observations"""
         raise NotImplementedError("Abstract type")
 
@@ -77,8 +81,7 @@ class DavisConditionsPacket(DavisPacket):
         """Returns source of data"""
         raise NotImplementedError("Abstract type")
 
-    def get_observation(self, observation: str, dst: DataStructureType = None, tx: int = None,
-                        enforce_unique: bool = True) -> Optional[Any]:
+    def get_observation(self, observation: str, dst: DataStructureType = None, tx: int = None) -> Optional[Any]:
         """
         Find the value of an observation in this packet
 
@@ -87,45 +90,83 @@ class DavisConditionsPacket(DavisPacket):
         :param observation: name of the requested observation
         :param dst: data structure type for filtering
         :param tx: transmitter (tx) id for filtering
-        :param enforce_unique: whether or not uniqueness of the conditions record should be enforced
         :return: value of requested observation
         :raise NotInPacket: signals that the observation wasn't found
         """
 
-        filtered = self._conditions
-        if dst is not None:
-            filtered = [conditions for conditions in filtered if conditions.get('data_structure_type') == dst]
-        if tx is not None:
-            filtered = [conditions for conditions in filtered if conditions.get('txid') == tx]
+        filtered = self._find_tx_entry(dst, tx)
 
-        if enforce_unique and len(filtered) > 1:
-            raise ValueError(
-                "Combination of dst %s and tx id %s did not result in an unique sensor" % (str(dst), str(tx)))
-
-        if len(filtered) < 1 or observation not in filtered[0]:
+        if filtered is None:
+            raise NotInPacket("No transmitter found for type %s and tx id %s in packet of type %s" % (
+            repr(dst), repr(tx), type(self).__name__))
+        if observation not in filtered:
             raise NotInPacket("Observation %s not found in packet of type %s" % (observation, type(self).__name__))
 
-        return filtered[0][observation]
+        return filtered[observation]
 
-    def get_observation_from_multiple(self, combinations: List[dict], enforce_unique: bool = True):
+    def _find_tx_entry(self,
+                       tx_type: DataStructureType = None,
+                       tx_id: int = None) -> Optional[TxEntry]:
+        filtered = self._conditions
+        if tx_type is not None:
+            filtered = [conditions for conditions in filtered if conditions.get('data_structure_type') == tx_type]
+        if tx_id is not None:
+            filtered = [conditions for conditions in filtered if conditions.get('txid') == tx_id]
+        if len(filtered) > 1:
+            raise ValueError(
+                "Combination of dst %s and tx id %s did not result in an unique sensor" % (str(tx_type), str(tx_id)))
+        return filtered[0] if len(filtered) >= 1 else None
+
+    def get_observation_from_multiple(self, combinations: List[dict]):
         """
         Attempt to fetch the observation from the given combinations of observation, dst and tx id
 
         The dictionaries are passed as kwargs to the get_observation, so look there for naming of keys.
 
         :param combinations: a list of dictionaries with combinations
-        :param enforce_unique: whether or not uniqueness of the conditions record should be enforced
         :return: value of observation
         :raise NotInPacket: signals that the observation wasn't found using any combination
         """
 
         for combination in combinations:
             try:
-                return self.get_observation(**combination, enforce_unique=enforce_unique)
+                return self.get_observation(**combination)
             except NotInPacket:
                 pass
 
         raise NotInPacket("Could not find observation using combinations %s" % repr(combinations))
+
+    @property
+    def tx_list(self) -> TxList:
+        """
+        Get a list of available TX type/id combinations
+        :return: List of TX type/id tuples
+        """
+        return [(tx_entry['data_structure_type'], tx_entry.get('txid')) for tx_entry in self._conditions]
+
+    def has_observation_values(self,
+                               observation_names: Set[str],
+                               tx_type: Optional[DataStructureType] = None,
+                               tx_id: Optional[int] = None) -> bool:
+        """
+        Check whether an observation exists and has a value
+
+        :param observation_names: Set of observation names (keys) to be checked
+        :param tx_type: Type of transmitter to check
+        :param tx_id: Id of transmitter to check
+        :return: `true` if all observations exist for the specified transmitter; `false` otherwise
+        :raise ValueError: if the given combination of tx type and id is not unique
+                """
+
+        tx_entry = self._find_tx_entry(tx_type, tx_id)
+        if not tx_entry:
+            raise ValueError("TX type %s and id %s did not match any entry" % (repr(tx_type), repr(tx_id)))
+
+        for observation_key in observation_names:
+            if observation_key not in tx_entry.keys():
+                return False
+
+        return True
 
 
 class WlHttpConditionsRequestPacket(DavisConditionsPacket):

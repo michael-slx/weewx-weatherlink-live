@@ -18,29 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-KEY_LOG_SUCCESS = 'log_success'
-KEY_LOG_FAILURE = 'log_failure'
+from user import weatherlink_live
 
-KEY_DRIVER_POLLING_INTERVAL = 'polling_interval'
-KEY_DRIVER_HOST = "host"
-KEY_DRIVER_MAPPING = 'mapping'
-KEY_MAX_NO_DATA_ITERATIONS = "max_no_data_iterations"
-KEY_DRIVER_WLCOM = "wlcom"
+DRIVER_NAME = weatherlink_live.DRIVER_NAME
+DRIVER_VERSION = weatherlink_live.DRIVER_VERSION
 
-KEY_MAPPER_TEMPERATURE_ONLY = 't'
-KEY_MAPPER_TEMPERATURE_HUMIDITY = 'th'
-KEY_MAPPER_WIND = 'wind'
-KEY_MAPPER_RAIN = 'rain'
-KEY_MAPPER_SOLAR = 'solar'
-KEY_MAPPER_UV = 'uv'
-KEY_MAPPER_WINDCHILL = 'windchill'
-KEY_MAPPER_THW = 'thw'
-KEY_MAPPER_THSW = 'thsw'
-KEY_MAPPER_SOIL_TEMP = 'soil_temp'
-KEY_MAPPER_SOIL_MOIST = 'soil_moist'
-KEY_MAPPER_LEAF_WETNESS = 'leaf_wet'
-KEY_MAPPER_TH_INDOOR = 'th_indoor'
-KEY_MAPPER_BARO = 'baro'
-KEY_MAPPER_BATTERY = 'battery'
-KEY_MAPPER_VOLTAGE = 'voltage'
-KEY_MAPPER_COMM = 'comm'
+schema = weatherlink_live.schema
+
+loader = weatherlink_live.loader
+confeditor_loader = weatherlink_live.confeditor_loader
+configurator_loader = weatherlink_live.configurator_loader

@@ -1,4 +1,4 @@
-# Copyright © 2020-2021 Michael Schantl and contributors
+# Copyright © 2020-2023 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,29 +24,34 @@ from typing import List
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
     THIndoorMapping, BaroMapping, AbstractMapping, BatteryStatusMapping, VoltageMapping, CommMapping
+from user.weatherlink_live.static import config as static_config
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING, \
     KEY_MAX_NO_DATA_ITERATIONS, KEY_DRIVER_WLCOM
 from user.weatherlink_live.utils import to_list
 from weeutil.weeutil import to_bool, to_float, to_int
 
+POLLING_INTERVAL_MIN = 10
+POLLING_INTERVAL_DEFAULT = POLLING_INTERVAL_MIN
+NO_DATA_ITERATIONS_DEFAULT = 5
+
 MAPPERS = {
-    't': TMapping,
-    'th': THMapping,
-    'wind': WindMapping,
-    'rain': RainMapping,
-    'solar': SolarMapping,
-    'uv': UvMapping,
-    'windchill': WindChillMapping,
-    'thw': ThwMapping,
-    'thsw': ThswMapping,
-    'soil_temp': SoilTempMapping,
-    'soil_moist': SoilMoistureMapping,
-    'leaf_wet': LeafWetnessMapping,
-    'th_indoor': THIndoorMapping,
-    'baro': BaroMapping,
-    'battery': BatteryStatusMapping,
-    'voltage': VoltageMapping,
-    'comm': CommMapping
+    static_config.KEY_MAPPER_TEMPERATURE_ONLY: TMapping,
+    static_config.KEY_MAPPER_TEMPERATURE_HUMIDITY: THMapping,
+    static_config.KEY_MAPPER_WIND: WindMapping,
+    static_config.KEY_MAPPER_RAIN: RainMapping,
+    static_config.KEY_MAPPER_SOLAR: SolarMapping,
+    static_config.KEY_MAPPER_UV: UvMapping,
+    static_config.KEY_MAPPER_WINDCHILL: WindChillMapping,
+    static_config.KEY_MAPPER_THW: ThwMapping,
+    static_config.KEY_MAPPER_THSW: ThswMapping,
+    static_config.KEY_MAPPER_SOIL_TEMP: SoilTempMapping,
+    static_config.KEY_MAPPER_SOIL_MOIST: SoilMoistureMapping,
+    static_config.KEY_MAPPER_LEAF_WETNESS: LeafWetnessMapping,
+    static_config.KEY_MAPPER_TH_INDOOR: THIndoorMapping,
+    static_config.KEY_MAPPER_BARO: BaroMapping,
+    static_config.KEY_MAPPER_BATTERY: BatteryStatusMapping,
+    static_config.KEY_MAPPER_VOLTAGE: VoltageMapping,
+    static_config.KEY_MAPPER_COMM: CommMapping
 }
 
 log = logging.getLogger(__name__)
@@ -58,14 +63,29 @@ def create_configuration(config: dict, driver_name: str):
     driver_dict = config[driver_name]
 
     host = driver_dict[KEY_DRIVER_HOST]
-    polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, 10))
-    max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, 5))
-    use_wlcom = to_bool(driver_dict.get(KEY_DRIVER_WLCOM, False))
-    mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
-    mappings = _parse_mappings(mapping_list)
 
-    log_success = to_bool(config.get('log_success', False))
-    log_error = to_bool(config.get('log_failure', True))
+    polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, POLLING_INTERVAL_DEFAULT))
+    if polling_interval < POLLING_INTERVAL_MIN:
+        raise ValueError(
+            "Polling interval has to be at least %d seconds (got: %d)" % (POLLING_INTERVAL_MIN, polling_interval))
+
+    max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, NO_DATA_ITERATIONS_DEFAULT))
+    if max_no_data_iterations < 1:
+        raise ValueError("%s has to be at least 1" % KEY_MAX_NO_DATA_ITERATIONS)
+
+    use_wlcom = to_bool(driver_dict.get(KEY_DRIVER_WLCOM, False))
+
+    mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
+    mappings = parse_mapping_definitions(mapping_list)
+    if len(mappings) < 1:
+        raise ValueError("At least 1 mapping has to be defined")
+
+    log_success = to_bool(config.get(static_config.KEY_LOG_SUCCESS, False))
+    log_success = to_bool(driver_dict.get(static_config.KEY_LOG_SUCCESS, log_success))
+
+    log_error = to_bool(config.get(static_config.KEY_LOG_FAILURE, True))
+    log_error = to_bool(driver_dict.get(static_config.KEY_LOG_FAILURE, log_error))
+
     socket_timeout = to_float(config.get('socket_timeout', 20))
 
     config_obj = Configuration(
@@ -81,13 +101,49 @@ def create_configuration(config: dict, driver_name: str):
     return config_obj
 
 
-def _parse_mappings(mappings_list: List[str]) -> List[List[str]]:
-    mappings = [
+MappingDefinition = List[str]
+MappingDefinitionList = List[MappingDefinition]
+
+
+def parse_mapping_definitions(mappings_list: List[str]) -> MappingDefinitionList:
+    return [
         [mapping_opt.strip() for mapping_opt in mapping_opts.split(':')]
         for mapping_opts
         in mappings_list
     ]
-    return mappings
+
+
+def build_mapping_definitions(mapping_definitions: MappingDefinitionList) -> List[str]:
+    return [":".join(definition) for definition in mapping_definitions]
+
+
+def create_mappers(mapping_definitions: MappingDefinitionList, log_success: bool, log_error: bool) -> List[
+    AbstractMapping]:
+    used_record_keys = []
+    mappers = []
+    for source_opts in mapping_definitions:
+        mapper = _create_mapper(source_opts, used_record_keys, log_success, log_error)
+        mappers.append(mapper)
+        used_record_keys.extend(mapper.targets.values())
+    return mappers
+
+
+def _create_mapper(source_opts: List[str],
+                   used_map_targets: List[str],
+                   log_success: bool,
+                   log_error: bool) -> AbstractMapping:
+    mapper_type = source_opts[0]
+    further_opts = source_opts[1:]
+
+    log.debug("Creating mapper %s. Options: %s" % (mapper_type, further_opts))
+
+    try:
+        mapper_init = MAPPERS[mapper_type]
+    except KeyError as e:
+        raise KeyError("Unknown mapper type: %s" % repr(mapper_type)) from e
+
+    mapper = mapper_init(further_opts, used_map_targets, log_success, log_error)
+    return mapper
 
 
 class Configuration(object):
@@ -95,7 +151,7 @@ class Configuration(object):
 
     def __init__(self,
                  host: str,
-                 mappings: List[List[str]],
+                 mappings: MappingDefinitionList,
                  polling_interval: float,
                  max_no_data_iterations: int,
                  log_success: bool,
@@ -116,24 +172,4 @@ class Configuration(object):
         return str(self.__dict__)
 
     def create_mappers(self) -> List[AbstractMapping]:
-        used_record_keys = []
-        mappers = []
-        for source_opts in self.mappings:
-            mapper = self._create_mapper(source_opts, used_record_keys)
-            mappers.append(mapper)
-            used_record_keys.extend(mapper.targets.values())
-        return mappers
-
-    def _create_mapper(self, source_opts: List[str], used_map_targets: List[str]) -> AbstractMapping:
-        type = source_opts[0]
-        further_opts = source_opts[1:]
-
-        log.debug("Creating mapper %s. Options: %s" % (type, further_opts))
-
-        try:
-            mapper_init = MAPPERS[type]
-        except KeyError as e:
-            raise KeyError("Unknown mapper type: %s" % repr(type)) from e
-
-        mapper = mapper_init(further_opts, used_map_targets, self.log_success, self.log_error)
-        return mapper
+        return create_mappers(self.mappings, self.log_success, self.log_error)
