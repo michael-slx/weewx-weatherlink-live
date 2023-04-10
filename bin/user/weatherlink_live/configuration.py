@@ -71,10 +71,8 @@ def create_configuration(config: dict, driver_name: str):
     if max_no_data_iterations < 1:
         raise ValueError("%s has to be at least 1" % KEY_MAX_NO_DATA_ITERATIONS)
 
-    mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
+    mapping_list = to_list(driver_dict.get(KEY_DRIVER_MAPPING, []))
     mappings = parse_mapping_definitions(mapping_list)
-    if len(mappings) < 1:
-        raise ValueError("At least 1 mapping has to be defined")
 
     sensors_section = driver_dict.get(static_config.KEY_SECTION_SENSORS, dict())
     sensor_definition_set = parse_sensor_definitions(sensors_section)
@@ -220,3 +218,11 @@ class Configuration(object):
 
     def create_mappers(self) -> List[AbstractMapping]:
         return create_mappers(self.mappings, self.log_success, self.log_error)
+
+    @property
+    def has_mappings(self) -> bool:
+        return len(self.mappings) > 0
+
+    @property
+    def has_sensors(self) -> bool:
+        return len(self.sensor_definition_set) > 0
