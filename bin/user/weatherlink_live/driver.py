@@ -22,7 +22,8 @@ import logging
 import threading
 
 from user.weatherlink_live import data_host, scheduler
-from user.weatherlink_live.configuration import create_configuration
+from user.weatherlink_live.configuration import create_configuration, create_mappers
+from user.weatherlink_live.sensors import create_mappers_from_sensors
 from user.weatherlink_live.service import WllWindGustService
 from user.weatherlink_live.static.version import DRIVER_NAME, DRIVER_VERSION
 from weewx import WeeWxIOError
@@ -48,7 +49,16 @@ class WeatherlinkLiveDriver(AbstractDevice):
         self.configuration = create_configuration(conf_dict, DRIVER_NAME)
         log.debug("Configuration: %s" % (repr(self.configuration)))
 
-        self.mappers = self.configuration.create_mappers()
+        if self.configuration.has_mappings:
+            log.debug("Creating mappers from mappers config")
+            self.mappers = create_mappers(self.configuration.mappings,
+                                          self.configuration.log_success,
+                                          self.configuration.log_error)
+
+        else:
+            log.debug("Creating mappers from sensors config")
+            self.mappers = create_mappers_from_sensors(self.configuration.sensor_definition_set, self.configuration)
+
         self.wind_service = WllWindGustService(engine, conf_dict, self.mappers, self.configuration.log_success,
                                                self.configuration.log_error)
 
