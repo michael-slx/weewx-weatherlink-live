@@ -24,7 +24,7 @@ from typing import List, Tuple, Iterable
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
     THIndoorMapping, BaroMapping, AbstractMapping, BatteryStatusMapping
-from user.weatherlink_live.static import config as static_config
+from user.weatherlink_live.static import config as static_config, labels
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING, \
     KEY_MAX_NO_DATA_ITERATIONS
 from user.weatherlink_live.utils import to_list
@@ -158,6 +158,23 @@ def build_sensor_definitions(sensor_config: Iterable[SensorDefinition]) -> dict[
             sensor_section[tx_id_str].append(sensor_type)
         else:
             sensor_section[tx_id_str].append("%s:%d" % (sensor_type, sensor_number))
+
+    return sensor_section
+
+
+def build_sensor_definition_comments(sensor_config: Iterable[SensorDefinition]) -> dict[str, list[str]]:
+    sensor_section: dict[str, list[str]] = dict()
+
+    for tx_id, sensor_type, sensor_number in sensor_config:
+        tx_id_str = str(tx_id)
+        if tx_id_str not in sensor_section:
+            sensor_section[tx_id_str] = ["", "Transmitter %d:" % tx_id]
+
+        sensor_label = labels.SENSOR_LABELS[sensor_type]
+        if sensor_number is None:
+            sensor_section[tx_id_str].append(" - %s" % sensor_label)
+        else:
+            sensor_section[tx_id_str].append(" - %s | %d" % (sensor_label, sensor_number))
 
     return sensor_section
 
