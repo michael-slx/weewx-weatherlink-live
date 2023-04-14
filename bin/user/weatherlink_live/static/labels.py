@@ -21,6 +21,9 @@
 """
 Labels for displaying mappings
 """
+from typing import Dict
+
+from user.weatherlink_live.static import config
 
 LABEL_SOURCE_TX_ID = "Transmitter %d"
 LABEL_SOURCE_WLL_BAROMETER = "Barometer"
@@ -59,3 +62,14 @@ LABEL_BARO_ABSOLUTE = "Barometer (absolute)"
 LABEL_BARO_SEA_LEVEL = "Barometer (sea level)"
 
 LABEL_BATTERY_STATUS = "Battery status"
+
+SENSOR_LABELS: Dict[str, str] = {
+    config.SENSOR_TYPE_TEMPERATURE_HUMIDITY: "Temperature/Humidity",
+    config.SENSOR_TYPE_RAIN: "Rain",
+    config.SENSOR_TYPE_WIND: "Wind",
+    config.SENSOR_TYPE_SOLAR: "Solar irradiation",
+    config.SENSOR_TYPE_UV: "UV index",
+    config.SENSOR_TYPE_SOIL_TEMPERATURE: "Soil temperature",
+    config.SENSOR_TYPE_SOIL_MOISTURE: "Soil moisture",
+    config.SENSOR_TYPE_LEAF_WETNESS: "Leaf wetness",
+}
