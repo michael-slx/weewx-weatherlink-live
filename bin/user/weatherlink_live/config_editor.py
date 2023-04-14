@@ -18,14 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Any, Dict, Tuple, List, Optional, Set, Iterable
+from typing import Any, Dict, Optional, Set
 
 from configobj import ConfigObj
 
 import weecfg
 import weewx.drivers
 from user.weatherlink_live import cli, configuration
-from user.weatherlink_live.config_display import build_tx_sensor_label, build_sensor_label
+from user.weatherlink_live.config_display import build_tx_sensor_label, print_sensors
 from user.weatherlink_live.configuration import SensorDefinition
 from user.weatherlink_live.static import config
 
@@ -51,32 +51,6 @@ def _menu_sensor_action() -> str:
         'd': "Delete a sensor",
     })
 
-
-def _group_sensor_config(sensor_config: Iterable[SensorDefinition]) -> Dict[int, List[Tuple[str, Optional[int]]]]:
-    group_set: Dict[int, List[Tuple[str, Optional[int]]]] = dict()
-
-    for tx_id, sensor_type, sensor_number in sensor_config:
-        if tx_id not in group_set:
-            group_set[tx_id] = list()
-        group_set[tx_id].append((sensor_type, sensor_number))
-
-    return group_set
-
-
-def _print_sensors(sensor_config: Set[SensorDefinition]):
-    grouped_sensor_config = _group_sensor_config(sorted(sensor_config))
-
-    if len(grouped_sensor_config) < 1:
-        print("No sensors are configured")
-        return
-
-    print("")
-    for tx_id, sensors in grouped_sensor_config.items():
-        print("== Transmitter %d ==" % tx_id)
-        for sensor_type, sensor_number in sorted(sensors):
-            sensor_label = build_sensor_label(sensor_type, sensor_number)
-            print(" = %s" % sensor_label)
-        print("")
 
 
 def _add_sensor(sensor_config: Set[SensorDefinition], last_tx_id: Optional[int] = None) -> (int, str, Optional[int]):
@@ -153,7 +127,7 @@ def _prompt_sensors_interactive(old_sensor_config: Set[SensorDefinition]) -> Set
             return old_sensor_config
 
         elif action == 'p'.casefold():
-            _print_sensors(sensor_config)
+            print_sensors(sensor_config)
 
         elif action == 'n'.casefold():
             try:
@@ -235,7 +209,7 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
 
         print("")
         print("=== Configured sensors ===")
-        _print_sensors(sensor_config)
+        print_sensors(sensor_config)
 
         print("")
 

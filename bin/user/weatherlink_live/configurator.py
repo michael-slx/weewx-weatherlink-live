@@ -19,60 +19,67 @@
 # SOFTWARE.
 
 from optparse import OptionParser
-from typing import Dict, List
+from typing import List
 
 from user.weatherlink_live import configuration
+from user.weatherlink_live.config_display import print_mappings, print_sensors
+from user.weatherlink_live.configuration import create_mappers
 from user.weatherlink_live.mappers import AbstractMapping
+from user.weatherlink_live.sensors import create_mappers_from_sensors
 from user.weatherlink_live.static import version
 from weewx.drivers import AbstractConfigurator
 
 
-def _create_mapping_tree(mappers: List[AbstractMapping]) -> Dict[str, Dict[str, Dict[str, str | List[str]]]]:
-    mapping_tree = dict()
+def _print_configuration(config: configuration.Configuration) -> None:
+    config_print_str = """
 
-    for mapper in mappers:
-        mapper_source = mapper.map_source_transmitter
-        mapper_type = type(mapper).__name__
-        mapping_table = mapper.map_table
+=== Configuration ===
+Hostname/IP address: %s
+Polling interval: %d s
+Max. no data iterations: %d
+Socket timeout: %d s
+Log successful operations: %s
+Log erroneous operations: %s
+""" % (config.host,
+       config.polling_interval,
+       config.max_no_data_iterations,
+       config.socket_timeout,
+       repr(config.log_success),
+       repr(config.log_error))
+    print(config_print_str)
 
-        if mapper_source not in mapping_tree:
-            mapping_tree[mapper_source] = dict()
 
-        if mapper_type not in mapping_tree[mapper_source]:
-            mapping_tree[mapper_source][mapper_type] = dict()
+def _print_sensors(config: configuration.Configuration) -> None:
+    sensors = config.sensor_definition_set
 
-        mapping_tree[mapper_source][mapper_type] = {**mapping_tree[mapper_source][mapper_type], **mapping_table}
+    print("\n\n=== Configured Sensors ===")
+    if len(sensors) > 0:
+        print_sensors({*sensors})
 
-    return mapping_tree
+    else:
+        print("No sensors are configured")
 
 
-def _print_mapping_tree(mapping_tree: Dict[str, Dict[str, Dict[str, str | List[str]]]]) -> None:
-    print("")
-    print("=== Configured Mappings ===")
-    print("")
+def _print_mapping(config: configuration.Configuration) -> None:
+    mappers = _create_mappers(config)
 
-    for transmitter, tx_mappings in mapping_tree.items():
-        print("== %s ==" % transmitter)
+    print("\n\n=== Configured Mappings ===")
+    if len(mappers) > 0:
         print("")
+        print_mappings(mappers)
 
-        for mapping_type, map_table in tx_mappings.items():
-            print("  %s:" % mapping_type)
-
-            for map_source, map_targets in map_table.items():
-                map_target = ", ".join(map_targets) if type(map_targets) is list else str(map_targets)
-                print("    %s: %s" % (map_source, map_target))
-
-            print("")
-
-        print("")
+    else:
+        print("No mappings are configured")
 
 
-def _print_mapping(conf_dict: Dict) -> None:
-    config = configuration.create_configuration(conf_dict, version.DRIVER_NAME)
-    mappers = config.create_mappers()
+def _create_mappers(config: configuration.Configuration) -> List[AbstractMapping]:
+    if config.has_mappings:
+        return create_mappers(config.mappings,
+                              config.log_success,
+                              config.log_error)
 
-    mapping_tree = _create_mapping_tree(mappers)
-    _print_mapping_tree(mapping_tree)
+    else:
+        return create_mappers_from_sensors(config.sensor_definition_set, config)
 
 
 class WeatherlinkLiveConfigurator(AbstractConfigurator):
@@ -83,7 +90,9 @@ class WeatherlinkLiveConfigurator(AbstractConfigurator):
     @property
     def usage(self):
         return """%prog --help
-       %prog [config_file] --print-mapping
+       %prog [config_file] -c|--print-configuration
+       %prog [config_file] -s|--print-sensors
+       %prog [config_file] -m|--print-mapping
 """
 
     @property
@@ -93,11 +102,22 @@ class WeatherlinkLiveConfigurator(AbstractConfigurator):
     def add_options(self, parser: OptionParser):
         super(WeatherlinkLiveConfigurator, self).add_options(parser)
 
-        parser.add_option("--print-mapping",
+        parser.add_option("-c", "--print-configuration",
+                          action="store_true", dest="print_config",
+                          help="Display all configuration options")
+        parser.add_option("-s", "--print-sensors",
+                          action="store_true", dest="print_sensors",
+                          help="Display configured sensors")
+        parser.add_option("-m", "--print-mapping",
                           action="store_true", dest="print_mapping",
                           help="Display configured mapping")
 
     def do_options(self, options, parser, config_dict, prompt):
+        config = configuration.create_configuration(config_dict, version.DRIVER_NAME)
+
+        if options.print_config:
+            _print_configuration(config)
+        if options.print_sensors:
+            _print_sensors(config)
         if options.print_mapping:
-            _print_mapping(config_dict)
-            return
+            _print_mapping(config)

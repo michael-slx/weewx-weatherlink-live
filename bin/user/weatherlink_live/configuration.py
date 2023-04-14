@@ -240,7 +240,7 @@ class Configuration(object):
         if sensor_definition_set is not None:
             self.sensor_definition_set = sensor_definition_set
         else:
-            self.sensor_definition_set = dict()
+            self.sensor_definition_set = list()
 
         self.log_success = log_success
         self.log_error = log_error
