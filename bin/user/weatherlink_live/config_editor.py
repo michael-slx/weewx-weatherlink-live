@@ -18,43 +18,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, Tuple, List, Optional, Set, Iterable
+
+from configobj import ConfigObj
 
 import weecfg
 import weewx.drivers
-from user.weatherlink_live.utils import to_list
-
-_MAPPER_TEMPLATE_LIST = List[Tuple[str, List[str]]]
-
-_MAPPINGS_TEMPLATES: _MAPPER_TEMPLATE_LIST = [
-    (
-        "Vantage Pro2 or Vantage Vue",
-        ['th:1', 'rain:1', 'wind:1', 'windchill:1', 'thw:1:appTemp', 'th_indoor', "baro", 'battery:1:outTemp:rain:wind']
-    ),
-    (
-        "Vantage Pro2 Plus",
-        ['th:1', 'rain:1', 'wind:1', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'th_indoor', 'baro',
-         'battery:1:outTemp:rain:wind:uv']
-    ),
-    (
-        "Vantage Pro2 Plus with additional anemometer transmitter",
-        ['th:1', 'rain:1', 'wind:2', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'th_indoor', 'baro',
-         'battery:1:outTemp:rain:uv', 'battery:2:wind']
-    ),
-    (
-        "Vantage Pro2 Plus with soil/leaf station",
-        ['th:1', 'rain:1', 'wind:1', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'soil_temp:2:1',
-         'soil_temp:2:2', 'soil_temp:2:3', 'soil_temp:2:4', 'soil_moist:2:1', 'soil_moist:2:2', 'soil_moist:2:3',
-         'soil_moist:2:4', 'leaf_wet:2:1', 'leaf_wet:2:2', 'th_indoor', 'baro', 'battery:1:outTemp:rain:wind:uv',
-         'battery:2:tx']
-    ),
-]
+from user.weatherlink_live import cli, configuration
+from user.weatherlink_live.config_display import build_tx_sensor_label, build_sensor_label
+from user.weatherlink_live.configuration import SensorDefinition
+from user.weatherlink_live.static import config
 
 _URL_HELP_INSTALLATION = "https://github.com/michael-slx/weewx-weatherlink-live/blob/develop/docs/installation.md"
-_URL_HELP_MAPPING_CONFIGURATION = "https://github.com/michael-slx/weewx-weatherlink-live/blob/develop/docs/configuration.md#defining-mappings"
 
 
-def _prompt_host(old_host: str | None) -> str:
+def _prompt_host(old_host: Optional[str]) -> str:
     print("\n")
     print("Specify the IP address (e.g. 192.168.1.123) or hostname (e.g. weatherlinklive")
     print("or weatherlinklive.localdomain) of the WeatherLink LIVE.)")
@@ -64,45 +42,132 @@ def _prompt_host(old_host: str | None) -> str:
     return weecfg.prompt_with_options("IP/Hostname", old_host)
 
 
-def _prompt_mappings() -> List[str]:
-    print("\n")
-    print("""WeeWX uses a configurable but fixed database schema to store the recorded data.
-WeatherLink LIVE however allows an arbitrary combination of transmitter types
-and sensors. There is no way to automatically determine the sensors connected.
-
-Because of this, the mappings from WeatherLink LIVE sensors to WeeWX have to be
-manually configured. The following interactive menu allows you to choose from
-templates. You can customize them manually later.
-
-For more details on mappings and how to manually edit them, see the online
-documentation:
-%s""" % _URL_HELP_MAPPING_CONFIGURATION)
-
-    _print_mapping_templates_menu()
-    template_no = weecfg.prompt_with_options("Use template (blank for none)", "",
-                                             [*[str(i) for i in range(0, len(_MAPPINGS_TEMPLATES))], ""])
-    if len(template_no) <= 0:
-        return []
-
-    template_idx = int(template_no)
-    return _MAPPINGS_TEMPLATES[template_idx][1]
+def _menu_sensor_action() -> str:
+    return cli.menu("Action", {
+        'w': "Quit & Save changes",
+        'q': "Quit & Discard changes",
+        'p': "Print sensors",
+        'n': "Add a new sensor",
+        'd': "Delete a sensor",
+    })
 
 
-def _print_mapping_templates_menu():
+def _group_sensor_config(sensor_config: Iterable[SensorDefinition]) -> Dict[int, List[Tuple[str, Optional[int]]]]:
+    group_set: Dict[int, List[Tuple[str, Optional[int]]]] = dict()
+
+    for tx_id, sensor_type, sensor_number in sensor_config:
+        if tx_id not in group_set:
+            group_set[tx_id] = list()
+        group_set[tx_id].append((sensor_type, sensor_number))
+
+    return group_set
+
+
+def _print_sensors(sensor_config: Set[SensorDefinition]):
+    grouped_sensor_config = _group_sensor_config(sorted(sensor_config))
+
+    if len(grouped_sensor_config) < 1:
+        print("No sensors are configured")
+        return
+
     print("")
-    print("Mapping templates:")
-    for i, (title, _) in enumerate(_MAPPINGS_TEMPLATES):
-        print("%3s: %s" % (str(i), title))
+    for tx_id, sensors in grouped_sensor_config.items():
+        print("== Transmitter %d ==" % tx_id)
+        for sensor_type, sensor_number in sorted(sensors):
+            sensor_label = build_sensor_label(sensor_type, sensor_number)
+            print(" = %s" % sensor_label)
+        print("")
 
 
-def _print_mappings_exists() -> None:
-    print("\n")
-    print("""There are already some configured mappings. You can customize them manually
-by editing the WeeWX configuration file.
+def _add_sensor(sensor_config: Set[SensorDefinition], last_tx_id: Optional[int] = None) -> (int, str, Optional[int]):
+    tx_id = cli.prompt_int_range("Enter the transmitter id of the sensor", 1, 8, last_tx_id)
+    sensor_type_short = cli.menu("Enter the type of sensor", {
+        'th': "Temperature/Humidity",
+        'r': "Rain",
+        'w': "Wind",
+        's': "Solar irradiation",
+        'u': "UV index",
+        'st': "Soil temperature",
+        'sm': "Soil moisture",
+        'lw': "Leaf wetness",
+    })
+    sensor_type_map = {
+        'th': config.SENSOR_TYPE_TEMPERATURE_HUMIDITY,
+        'r': config.SENSOR_TYPE_RAIN,
+        'w': config.SENSOR_TYPE_WIND,
+        's': config.SENSOR_TYPE_SOLAR,
+        'u': config.SENSOR_TYPE_UV,
+        'st': config.SENSOR_TYPE_SOIL_TEMPERATURE,
+        'sm': config.SENSOR_TYPE_SOIL_MOISTURE,
+        'lw': config.SENSOR_TYPE_LEAF_WETNESS,
+    }
 
-For more details on mappings and how to manually edit them, see the online
-documentation:
-%s""" % _URL_HELP_MAPPING_CONFIGURATION)
+    if sensor_type_short in ['st', 'sm']:
+        sensor_number = cli.prompt_int_range("Enter the port number of the sensor", 1, 4)
+
+    elif sensor_type_short == 'lw':
+        sensor_number = cli.prompt_int_range("Enter the port number of the sensor", 1, 2)
+
+    else:
+        sensor_number = None
+
+    sensor_type = sensor_type_map[sensor_type_short]
+
+    sensor_config.add((tx_id, sensor_type, sensor_number))
+    print("Created sensor: %s" % build_tx_sensor_label(tx_id, sensor_type, sensor_number))
+
+    return tx_id, sensor_type, sensor_number
+
+
+def _delete_sensor(sensor_config: Set[SensorDefinition]):
+    sensor_config_list = sorted(sensor_config)
+    sensor_config_menu_list = [
+        build_tx_sensor_label(tx_id, sensor_type, sensor_number)
+        for tx_id, sensor_type, sensor_number
+        in sensor_config_list
+    ]
+
+    print("\nSelect sensor to delete:")
+    for i in range(len(sensor_config_menu_list)):
+        print(" %2d: %s" % (i, sensor_config_menu_list[i]))
+
+    delete_idx = cli.prompt_int_range("Delete sensor", 0, len(sensor_config_menu_list) - 1)
+    delete_sensor = sensor_config_list[delete_idx]
+    sensor_config.remove(delete_sensor)
+
+    print("Deleted sensor: %s" % build_tx_sensor_label(*delete_sensor))
+
+
+def _prompt_sensors_interactive(old_sensor_config: Set[SensorDefinition]) -> Set[SensorDefinition]:
+    sensor_config: Set[SensorDefinition] = {*old_sensor_config}
+    last_tx_id: Optional[int] = None
+
+    while True:
+        print("")
+        action = _menu_sensor_action()
+
+        if action == 'w'.casefold():
+            break
+
+        elif action == 'q'.casefold():
+            return old_sensor_config
+
+        elif action == 'p'.casefold():
+            _print_sensors(sensor_config)
+
+        elif action == 'n'.casefold():
+            try:
+                last_tx_id, _, _ = _add_sensor(sensor_config, last_tx_id)
+            except cli.AbortCliMenu:
+                continue
+
+        elif action == 'd'.casefold():
+            try:
+                _delete_sensor(sensor_config)
+            except cli.AbortCliMenu:
+                continue
+
+    return sensor_config
 
 
 def _print_mapping_table_info():
@@ -122,7 +187,7 @@ See the installation manual for detailed instructions:
 
 class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
     def __init__(self):
-        self.existing_options = dict()
+        self.existing_options = ConfigObj()
 
     @property
     def default_stanza(self):
@@ -136,33 +201,45 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
     # Host name or IP address of WeatherLink Live
     host = weatherlinklive
 
-    # Mapping of transmitter ids to WeeWX records
-    mapping = ,
-
     # Whether to log successful operations. Overrides top-level setting.
     #log_success = False
 
     # Whether to log unsuccessful operations. Overrides top-level setting.
     #log_failure = True
+
+    # Configuration of available sensors
+    [[sensors]]
+        # TX 1 has Temperature/Humidity, Rain, Wind, Solar and UV
+        1 = th, rain, wind, solar, uv
 """
 
     def prompt_for_settings(self) -> Dict[str, Any]:
         settings = self.existing_options
 
-        old_host = settings.get('host', None)
+        old_host = settings.get(config.KEY_DRIVER_HOST, None)
         old_host = old_host if old_host and len(old_host) > 0 else None
         host = _prompt_host(old_host)
-        settings['host'] = host
+        settings[config.KEY_DRIVER_HOST] = host
 
-        mapping_def_cfg_list = to_list(settings.get('mapping', []))
-        if len(mapping_def_cfg_list) <= 0:
-            mapping_def_cfg_list = _prompt_mappings()
-            settings['mapping'] = mapping_def_cfg_list
-        else:
-            _print_mappings_exists()
+        if config.KEY_DRIVER_MAPPING in settings:
+            del settings[config.KEY_DRIVER_MAPPING]
+
+        old_sensors_section = settings.get(config.KEY_SECTION_SENSORS, dict())
+        old_sensor_config = configuration.parse_sensor_definitions(old_sensors_section)
+        sensor_config = _prompt_sensors_interactive({*old_sensor_config})
+        new_sensors_section = configuration.build_sensor_definitions(sensor_config)
+
+        settings[config.KEY_SECTION_SENSORS] = new_sensors_section
+        settings.comments[config.KEY_SECTION_SENSORS] = ["", "Configuration of available sensors"]
+        settings[config.KEY_SECTION_SENSORS].comments = configuration.build_sensor_definition_comments(sensor_config)
+
+        print("")
+        print("=== Configured sensors ===")
+        _print_sensors(sensor_config)
+
+        print("")
 
         _print_mapping_table_info()
-
         _print_schema_info()
 
         return settings
