@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
@@ -144,6 +144,22 @@ def _parse_tx_sensor_definitions(transmitter_id: int, tx_sensor_list: List[str])
         sensor_definitions.append(sensor_def)
 
     return sensor_definitions
+
+
+def build_sensor_definitions(sensor_config: Iterable[SensorDefinition]) -> dict[str, list[str]]:
+    sensor_section: dict[str, list[str]] = dict()
+
+    for tx_id, sensor_type, sensor_number in sensor_config:
+        tx_id_str = str(tx_id)
+        if tx_id_str not in sensor_section:
+            sensor_section[tx_id_str] = list()
+
+        if sensor_number is None:
+            sensor_section[tx_id_str].append(sensor_type)
+        else:
+            sensor_section[tx_id_str].append("%s:%d" % (sensor_type, sensor_number))
+
+    return sensor_section
 
 
 def parse_mapping_definitions(mappings_list: List[str]) -> MappingDefinitionList:
