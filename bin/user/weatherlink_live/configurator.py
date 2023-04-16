@@ -31,15 +31,16 @@ from weewx.drivers import AbstractConfigurator
 
 
 def _print_configuration(config: configuration.Configuration) -> None:
-    config_print_str = """
+    config_print_str = f"""
 
-=== Configuration ===
-Hostname/IP address: %s
-Polling interval: %d s
-Max. no data iterations: %d
-Socket timeout: %d s
-Log successful operations: %s
-Log erroneous operations: %s
+{cli.Colors.STANDOUT}{cli.Colors.HEADER}=== Configuration ==={cli.Colors.END}
+
+{cli.Colors.BOLD}Hostname/IP address:{cli.Colors.END} %s
+{cli.Colors.BOLD}Polling interval:{cli.Colors.END} %d s
+{cli.Colors.BOLD}Max. no data iterations:{cli.Colors.END} %d
+{cli.Colors.BOLD}Socket timeout:{cli.Colors.END} %d s
+{cli.Colors.BOLD}Log successful operations:{cli.Colors.END} %s
+{cli.Colors.BOLD}Log erroneous operations:{cli.Colors.END} %s
 """ % (config.host,
        config.polling_interval,
        config.max_no_data_iterations,
@@ -52,24 +53,24 @@ Log erroneous operations: %s
 def _print_sensors(config: configuration.Configuration) -> None:
     sensors = config.sensor_definition_set
 
-    print("\n\n=== Configured Sensors ===")
+    print(f"\n\n{cli.Colors.STANDOUT}{cli.Colors.HEADER}=== Configured Sensors ==={cli.Colors.END}")
     if len(sensors) > 0:
         print_sensors({*sensors})
 
     else:
-        print("No sensors are configured")
+        print(f"{cli.Colors.BOLD}No sensors are configured{cli.Colors.END}")
 
 
 def _print_mapping(config: configuration.Configuration) -> None:
     mappers = _create_mappers(config)
 
-    print("\n\n=== Configured Mappings ===")
+    print(f"\n\n{cli.Colors.STANDOUT}{cli.Colors.HEADER}=== Configured Mappings ==={cli.Colors.END}")
     if len(mappers) > 0:
         print("")
         print_mappings(mappers)
 
     else:
-        print("No mappings are configured")
+        print(f"{cli.Colors.BOLD}No mappings are configured{cli.Colors.END}")
 
 
 def _create_mappers(config: configuration.Configuration) -> List[AbstractMapping]:

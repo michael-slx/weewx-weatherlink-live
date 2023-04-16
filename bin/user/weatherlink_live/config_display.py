@@ -1,5 +1,6 @@
 from typing import Optional, Set, List, Dict, Tuple, Iterable
 
+from user.weatherlink_live import cli
 from user.weatherlink_live.configuration import SensorDefinition
 from user.weatherlink_live.mappers import AbstractMapping
 from user.weatherlink_live.static import labels
@@ -31,14 +32,14 @@ def _create_mapping_tree(mappers: List[AbstractMapping]) -> Dict[str, Dict[str, 
 
 def _print_mapping_tree(mapping_tree: Dict[str, Dict[str, Dict[str, str | List[str]]]]) -> None:
     for transmitter, tx_mappings in mapping_tree.items():
-        print("== %s ==\n" % transmitter)
+        print(f"{cli.Colors.BOLD}{cli.Colors.HEADER}== %s =={cli.Colors.END}\n" % transmitter)
 
         for mapping_type, map_table in tx_mappings.items():
-            print("  %s:" % mapping_type)
+            print(f"  {cli.Colors.BOLD}{cli.Colors.HEADER}%s{cli.Colors.END}:" % mapping_type)
 
             for map_source, map_targets in map_table.items():
                 map_target = ", ".join(map_targets) if type(map_targets) is list else str(map_targets)
-                print("    %s: %s" % (map_source, map_target))
+                print(f"    {cli.Colors.BOLD}%s{cli.Colors.END}: %s" % (map_source, map_target))
             print("")
         print("")
 
@@ -63,7 +64,7 @@ def print_sensors(sensor_config: Set[SensorDefinition]):
 
     print("")
     for tx_id, sensors in grouped_sensor_config.items():
-        print("== Transmitter %d ==" % tx_id)
+        print(f"{cli.Colors.BOLD}{cli.Colors.HEADER}== Transmitter %d =={cli.Colors.END}" % tx_id)
         for sensor_type, sensor_number in sorted(sensors):
             sensor_label = build_sensor_label(sensor_type, sensor_number)
             print(" - %s" % sensor_label)
