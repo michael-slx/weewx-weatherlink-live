@@ -21,7 +21,7 @@
 from optparse import OptionParser
 from typing import List
 
-from user.weatherlink_live import configuration
+from user.weatherlink_live import configuration, network_test, cli
 from user.weatherlink_live.config_display import print_mappings, print_sensors
 from user.weatherlink_live.configuration import create_mappers
 from user.weatherlink_live.mappers import AbstractMapping
@@ -82,6 +82,30 @@ def _create_mappers(config: configuration.Configuration) -> List[AbstractMapping
         return create_mappers_from_sensors(config.sensor_definition_set, config)
 
 
+def _test_network(config: configuration.Configuration) -> None:
+    try:
+        try:
+            print("\n")
+            network_test.test_http(config)
+        except Exception as e:
+            print(
+                f"\n{cli.Colors.STANDOUT}{cli.Colors.FAIL}Error while requesting current conditions from WeatherLink Live \"%s\"{cli.Colors.END}" % config.host)
+            print(f"{cli.Colors.FAIL}%s{cli.Colors.END}" % repr(e))
+            return
+
+        try:
+            print("\n")
+            network_test.test_udp(config)
+        except Exception as e:
+            print(
+                f"\n{cli.Colors.STANDOUT}{cli.Colors.FAIL}Error while receiving live data from WeatherLink Live \"%s\"{cli.Colors.END}" % config.host)
+            print(f"{cli.Colors.FAIL}%s{cli.Colors.END}" % repr(e))
+            return
+
+    except KeyboardInterrupt:
+        pass
+
+
 class WeatherlinkLiveConfigurator(AbstractConfigurator):
     @property
     def description(self):
@@ -90,9 +114,8 @@ class WeatherlinkLiveConfigurator(AbstractConfigurator):
     @property
     def usage(self):
         return """%prog --help
-       %prog [config_file] -c|--print-configuration
-       %prog [config_file] -s|--print-sensors
-       %prog [config_file] -m|--print-mapping
+       %prog [config_file] [-t|--test]
+       %prog [config_file] [-c|--print-configuration] [-s|--print-sensors] [-m|--print-mapping]
 """
 
     @property
@@ -102,6 +125,9 @@ class WeatherlinkLiveConfigurator(AbstractConfigurator):
     def add_options(self, parser: OptionParser):
         super(WeatherlinkLiveConfigurator, self).add_options(parser)
 
+        parser.add_option("-t", "--test",
+                          action="store_true", dest="test_network",
+                          help="Test network connectivity")
         parser.add_option("-c", "--print-configuration",
                           action="store_true", dest="print_config",
                           help="Display all configuration options")
@@ -114,6 +140,10 @@ class WeatherlinkLiveConfigurator(AbstractConfigurator):
 
     def do_options(self, options, parser, config_dict, prompt):
         config = configuration.create_configuration(config_dict, version.DRIVER_NAME)
+
+        if options.test_network:
+            _test_network(config)
+            return
 
         if options.print_config:
             _print_configuration(config)
