@@ -26,7 +26,7 @@ import weecfg
 import weewx.drivers
 from user.weatherlink_live import cli, configuration
 from user.weatherlink_live.config_display import build_tx_sensor_label, print_sensors
-from user.weatherlink_live.configuration import SensorDefinition
+from user.weatherlink_live.configuration import TxSensorDefinition
 from user.weatherlink_live.static import config
 
 _URL_HELP_INSTALLATION = "https://github.com/michael-slx/weewx-weatherlink-live/blob/develop/docs/installation.md"
@@ -53,7 +53,7 @@ def _menu_sensor_action() -> str:
 
 
 
-def _add_sensor(sensor_config: Set[SensorDefinition], last_tx_id: Optional[int] = None) -> (int, str, Optional[int]):
+def _add_sensor(sensor_config: Set[TxSensorDefinition], last_tx_id: Optional[int] = None) -> (int, str, Optional[int]):
     tx_id = cli.prompt_int_range("Enter the transmitter id of the sensor", 1, 8, last_tx_id)
     sensor_type_short = cli.menu("Enter the type of sensor", {
         'th': "Temperature/Humidity",
@@ -93,7 +93,7 @@ def _add_sensor(sensor_config: Set[SensorDefinition], last_tx_id: Optional[int] 
     return tx_id, sensor_type, sensor_number
 
 
-def _delete_sensor(sensor_config: Set[SensorDefinition]):
+def _delete_sensor(sensor_config: Set[TxSensorDefinition]):
     sensor_config_list = sorted(sensor_config)
     sensor_config_menu_list = [
         build_tx_sensor_label(tx_id, sensor_type, sensor_number)
@@ -112,8 +112,8 @@ def _delete_sensor(sensor_config: Set[SensorDefinition]):
     print("Deleted sensor: %s" % build_tx_sensor_label(*delete_sensor))
 
 
-def _prompt_sensors_interactive(old_sensor_config: Set[SensorDefinition]) -> Set[SensorDefinition]:
-    sensor_config: Set[SensorDefinition] = {*old_sensor_config}
+def _prompt_sensors_interactive(old_sensor_config: Set[TxSensorDefinition]) -> Set[TxSensorDefinition]:
+    sensor_config: Set[TxSensorDefinition] = {*old_sensor_config}
     last_tx_id: Optional[int] = None
 
     while True:

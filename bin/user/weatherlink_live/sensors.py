@@ -7,7 +7,7 @@ from user.weatherlink_live.static import config as config_static
 logger = logging.getLogger(__name__)
 
 
-def create_mappers_from_sensors(sensors: configuration.SensorDefinitionSet,
+def create_mappers_from_sensors(sensors: configuration.TxSensorDefinitionSet,
                                 config: configuration.Configuration) -> List[mappers.AbstractMapping]:
     mapper_list = list()
     used_mapping_targets = list()
@@ -20,7 +20,7 @@ def create_mappers_from_sensors(sensors: configuration.SensorDefinitionSet,
     return mapper_list
 
 
-def _create_sensor_mappers(sensors: configuration.SensorDefinitionSet,
+def _create_sensor_mappers(sensors: configuration.TxSensorDefinitionSet,
                            config: configuration.Configuration,
                            used_mapping_targets: list) -> List[mappers.AbstractMapping]:
     mapper_list = list()
@@ -32,7 +32,7 @@ def _create_sensor_mappers(sensors: configuration.SensorDefinitionSet,
     return mapper_list
 
 
-def _create_sensor_mapper(sensors: configuration.SensorDefinitionSet,
+def _create_sensor_mapper(sensors: configuration.TxSensorDefinitionSet,
                           config: configuration.Configuration,
                           used_mapping_targets: list) -> mappers.AbstractMapping:
     log_success = config.log_success
@@ -89,7 +89,7 @@ def _create_sensor_mapper(sensors: configuration.SensorDefinitionSet,
         raise ValueError("Unknown sensor type: %s" % sensor_type)
 
 
-def _create_compound_mappers(sensors: configuration.SensorDefinitionSet,
+def _create_compound_mappers(sensors: configuration.TxSensorDefinitionSet,
                              config: configuration.Configuration,
                              used_mapping_targets: list) -> List[mappers.AbstractMapping]:
     log_success = config.log_success
@@ -124,7 +124,7 @@ def _create_compound_mappers(sensors: configuration.SensorDefinitionSet,
     return mapper_list
 
 
-def _get_tx_ids_for_thsw(sensors: configuration.SensorDefinitionSet) -> Set[int]:
+def _get_tx_ids_for_thsw(sensors: configuration.TxSensorDefinitionSet) -> Set[int]:
     tx_ids = {
         tx_id
         for tx_id
@@ -137,7 +137,7 @@ def _get_tx_ids_for_thsw(sensors: configuration.SensorDefinitionSet) -> Set[int]
     return tx_ids
 
 
-def _get_tx_ids_for_thw(sensors: configuration.SensorDefinitionSet) -> Set[int]:
+def _get_tx_ids_for_thw(sensors: configuration.TxSensorDefinitionSet) -> Set[int]:
     tx_ids = {
         tx_id
         for tx_id
@@ -149,12 +149,12 @@ def _get_tx_ids_for_thw(sensors: configuration.SensorDefinitionSet) -> Set[int]:
     return tx_ids
 
 
-def _get_tx_ids(sensors: configuration.SensorDefinitionSet) -> Set[int]:
+def _get_tx_ids(sensors: configuration.TxSensorDefinitionSet) -> Set[int]:
     tx_ids = {sensor[0] for sensor in sensors}
     return tx_ids
 
 
-def _has_sensors(sensors: configuration.SensorDefinitionSet,
+def _has_sensors(sensors: configuration.TxSensorDefinitionSet,
                  expected_tx_id: int,
                  expected_sensor_types: Set[str]) -> bool:
     for tx_id, sensor_type, _ in sensors:

@@ -101,11 +101,11 @@ def create_configuration(config: dict, driver_name: str):
 MappingDefinition = List[str]
 MappingDefinitionList = List[MappingDefinition]
 
-SensorDefinition = Tuple[int, str, int | None]
-SensorDefinitionSet = List[SensorDefinition]
+TxSensorDefinition = Tuple[int, str, int | None]
+TxSensorDefinitionSet = List[TxSensorDefinition]
 
 
-def parse_sensor_definitions(sensors_section: dict) -> SensorDefinitionSet:
+def parse_sensor_definitions(sensors_section: dict) -> TxSensorDefinitionSet:
     definition_set = set()
     for transmitter_id in range(1, 8):
         sensor_key = str(transmitter_id)
@@ -117,15 +117,15 @@ def parse_sensor_definitions(sensors_section: dict) -> SensorDefinitionSet:
     return sorted(definition_set)
 
 
-def _parse_tx_sensor_definitions(transmitter_id: int, tx_sensor_list: List[str]) -> SensorDefinitionSet:
-    sensor_definitions: SensorDefinitionSet = list()
+def _parse_tx_sensor_definitions(transmitter_id: int, tx_sensor_list: List[str]) -> TxSensorDefinitionSet:
+    sensor_definitions: TxSensorDefinitionSet = list()
 
     for sensor_str in tx_sensor_list:
         clean_str = sensor_str.lower().strip()
 
         argument_count = clean_str.count(':')
         if argument_count < 1:
-            sensor_def: SensorDefinition = (transmitter_id, clean_str, None)
+            sensor_def: TxSensorDefinition = (transmitter_id, clean_str, None)
 
         elif argument_count == 1:
             sensor_type, sensor_num_str = sensor_str.split(':', 2)
@@ -135,7 +135,7 @@ def _parse_tx_sensor_definitions(transmitter_id: int, tx_sensor_list: List[str])
             except ValueError as e:
                 raise ValueError("Failed to parse sensor number in sensor definition: %s" % repr(sensor_num_str)) from e
 
-            sensor_def: SensorDefinition = (transmitter_id, sensor_type, sensor_num)
+            sensor_def: TxSensorDefinition = (transmitter_id, sensor_type, sensor_num)
 
         else:
             raise ValueError(
@@ -146,7 +146,7 @@ def _parse_tx_sensor_definitions(transmitter_id: int, tx_sensor_list: List[str])
     return sensor_definitions
 
 
-def build_sensor_definitions(sensor_config: Iterable[SensorDefinition]) -> dict[str, list[str]]:
+def build_sensor_definitions(sensor_config: Iterable[TxSensorDefinition]) -> dict[str, list[str]]:
     sensor_section: dict[str, list[str]] = dict()
 
     for tx_id, sensor_type, sensor_number in sensor_config:
@@ -162,7 +162,7 @@ def build_sensor_definitions(sensor_config: Iterable[SensorDefinition]) -> dict[
     return sensor_section
 
 
-def build_sensor_definition_comments(sensor_config: Iterable[SensorDefinition]) -> dict[str, list[str]]:
+def build_sensor_definition_comments(sensor_config: Iterable[TxSensorDefinition]) -> dict[str, list[str]]:
     sensor_section: dict[str, list[str]] = dict()
 
     for tx_id, sensor_type, sensor_number in sensor_config:
@@ -231,7 +231,7 @@ class Configuration(object):
                  log_success: bool,
                  log_error: bool,
                  socket_timeout: float,
-                 sensor_definition_set: SensorDefinitionSet | None = None):
+                 sensor_definition_set: TxSensorDefinitionSet | None = None):
         self.host = host
         self.mappings = mappings
         self.polling_interval = polling_interval

@@ -1,7 +1,7 @@
 from typing import Optional, Set, List, Dict, Tuple, Iterable
 
 from user.weatherlink_live import cli
-from user.weatherlink_live.configuration import SensorDefinition
+from user.weatherlink_live.configuration import TxSensorDefinition
 from user.weatherlink_live.mappers import AbstractMapping
 from user.weatherlink_live.static import labels
 
@@ -55,7 +55,7 @@ def build_tx_sensor_label(tx_id: int, sensor_type: str, sensor_number: Optional[
     return "TX. %d - %s" % (tx_id, build_sensor_label(sensor_type, sensor_number))
 
 
-def print_sensors(sensor_config: Set[SensorDefinition]):
+def print_sensors(sensor_config: Set[TxSensorDefinition]):
     grouped_sensor_config = _group_sensor_config(sorted(sensor_config))
 
     if len(grouped_sensor_config) < 1:
@@ -71,7 +71,7 @@ def print_sensors(sensor_config: Set[SensorDefinition]):
         print("")
 
 
-def _group_sensor_config(sensor_config: Iterable[SensorDefinition]) -> Dict[int, List[Tuple[str, Optional[int]]]]:
+def _group_sensor_config(sensor_config: Iterable[TxSensorDefinition]) -> Dict[int, List[Tuple[str, Optional[int]]]]:
     group_set: Dict[int, List[Tuple[str, Optional[int]]]] = dict()
 
     for tx_id, sensor_type, sensor_number in sensor_config:
