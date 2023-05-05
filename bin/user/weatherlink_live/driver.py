@@ -57,7 +57,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
 
         else:
             log.debug("Creating mappers from sensors config")
-            self.mappers = create_mappers_from_sensors(self.configuration.sensor_definition_set, self.configuration)
+            self.mappers = create_mappers_from_sensors(self.configuration.sensor_definition_map, self.configuration)
 
         self.wind_service = WllWindGustService(engine, conf_dict, self.mappers, self.configuration.log_success,
                                                self.configuration.log_error)

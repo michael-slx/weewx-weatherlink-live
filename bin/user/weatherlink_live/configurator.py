@@ -51,11 +51,11 @@ def _print_configuration(config: configuration.Configuration) -> None:
 
 
 def _print_sensors(config: configuration.Configuration) -> None:
-    sensors = config.sensor_definition_set
+    sensors = config.sensor_definition_map
 
     print(f"\n\n{cli.Colors.STANDOUT}{cli.Colors.HEADER}=== Configured Sensors ==={cli.Colors.END}")
-    if len(sensors) > 0:
-        print_sensors({*sensors})
+    if sensors:
+        print_sensors(sensors)
 
     else:
         print(f"{cli.Colors.BOLD}No sensors are configured{cli.Colors.END}")
@@ -80,7 +80,7 @@ def _create_mappers(config: configuration.Configuration) -> List[AbstractMapping
                               config.log_error)
 
     else:
-        return create_mappers_from_sensors(config.sensor_definition_set, config)
+        return create_mappers_from_sensors(config.sensor_definition_map, config)
 
 
 def _test_network(config: configuration.Configuration) -> None:

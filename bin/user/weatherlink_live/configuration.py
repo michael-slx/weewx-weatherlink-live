@@ -19,12 +19,12 @@
 # SOFTWARE.
 
 import logging
-from typing import List, Tuple, Optional, Set, Dict
+from typing import List, Tuple, Set, Dict, Optional
 
 from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, RainMapping, SolarMapping, UvMapping, \
     WindChillMapping, ThwMapping, ThswMapping, SoilTempMapping, SoilMoistureMapping, LeafWetnessMapping, \
     THIndoorMapping, BaroMapping, AbstractMapping, BatteryStatusMapping
-from user.weatherlink_live.static import config as static_config
+from user.weatherlink_live.static import config as static_config, labels
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING, \
     KEY_MAX_NO_DATA_ITERATIONS
 from user.weatherlink_live.utils import to_list
@@ -54,100 +54,59 @@ MAPPERS = {
 
 log = logging.getLogger(__name__)
 
-
-def create_configuration(config: dict, driver_name: str):
-    """Create Configuration object from conf_dict"""
-
-    driver_dict = config[driver_name]
-
-    host = driver_dict[KEY_DRIVER_HOST]
-
-    polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, POLLING_INTERVAL_DEFAULT))
-    if polling_interval < POLLING_INTERVAL_MIN:
-        raise ValueError(
-            "Polling interval has to be at least %d seconds (got: %d)" % (POLLING_INTERVAL_MIN, polling_interval))
-
-    max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, NO_DATA_ITERATIONS_DEFAULT))
-    if max_no_data_iterations < 1:
-        raise ValueError("%s has to be at least 1" % KEY_MAX_NO_DATA_ITERATIONS)
-
-    mapping_list = to_list(driver_dict.get(KEY_DRIVER_MAPPING, []))
-    mappings = parse_mapping_definitions(mapping_list)
-
-    sensors_section = driver_dict.get(static_config.KEY_SECTION_SENSORS, dict())
-    sensor_definition_set = parse_sensor_definitions(sensors_section)
-
-    log_success = to_bool(config.get(static_config.KEY_LOG_SUCCESS, False))
-    log_success = to_bool(driver_dict.get(static_config.KEY_LOG_SUCCESS, log_success))
-
-    log_error = to_bool(config.get(static_config.KEY_LOG_FAILURE, True))
-    log_error = to_bool(driver_dict.get(static_config.KEY_LOG_FAILURE, log_error))
-
-    socket_timeout = to_float(config.get('socket_timeout', 20))
-
-    config_obj = Configuration(
-        host=host,
-        mappings=mappings,
-        polling_interval=polling_interval,
-        max_no_data_iterations=max_no_data_iterations,
-        log_success=log_success,
-        log_error=log_error,
-        socket_timeout=socket_timeout,
-        sensor_definition_set=sensor_definition_set,
-    )
-    return config_obj
-
-
 MappingDefinition = List[str]
 MappingDefinitionList = List[MappingDefinition]
 
-TxSensorDefinition = Tuple[int, str, int | None]
-TxSensorDefinitionSet = List[TxSensorDefinition]
-
-SensorDefinition = Tuple[static_config.SensorType, Optional[int]]
-SensorDefinitionSet = Set[SensorDefinition]
+SensorDefinitionSet = Set[static_config.SensorType]
 SensorDefinitionMap = Dict[int, SensorDefinitionSet]
+FlatSensorDefinition = Tuple[int, static_config.SensorType]
 
 
-def parse_sensor_definitions(sensors_section: dict) -> TxSensorDefinitionSet:
-    definition_set = set()
-    for transmitter_id in range(1, 8):
-        sensor_key = str(transmitter_id)
-        tx_sensor_list = to_list(sensors_section.get(sensor_key, []))
+def parse_sensor_definition_map(sensor_section: dict) -> SensorDefinitionMap:
+    definition_map: SensorDefinitionMap = dict()
+    for tx_id in range(1, 8 + 1):
+        tx_id_key = str(tx_id)
+        tx_sensor_list = to_list(sensor_section.get(tx_id_key, list()))
+        tx_sensor_set = _parse_sensor_set(tx_sensor_list)
+        if not tx_sensor_set:
+            continue
+        definition_map[tx_id] = tx_sensor_set
+    return definition_map
 
-        new_definitions = _parse_tx_sensor_definitions(transmitter_id, tx_sensor_list)
-        definition_set.update(new_definitions)
 
-    return sorted(definition_set)
+def _parse_sensor_set(tx_sensor_list: List[str]) -> SensorDefinitionSet:
+    sensor_keys = sorted([sensor_key.strip().casefold() for sensor_key in tx_sensor_list])
+    sensor_set = {static_config.SensorType(sensor_key) for sensor_key in sensor_keys}
+    return sensor_set
 
 
-def _parse_tx_sensor_definitions(transmitter_id: int, tx_sensor_list: List[str]) -> TxSensorDefinitionSet:
-    sensor_definitions: TxSensorDefinitionSet = list()
-
-    for sensor_str in tx_sensor_list:
-        clean_str = sensor_str.lower().strip()
-
-        argument_count = clean_str.count(':')
-        if argument_count < 1:
-            sensor_def: TxSensorDefinition = (transmitter_id, clean_str, None)
-
-        elif argument_count == 1:
-            sensor_type, sensor_num_str = sensor_str.split(':', 2)
-
-            try:
-                sensor_num = int(sensor_num_str)
-            except ValueError as e:
-                raise ValueError("Failed to parse sensor number in sensor definition: %s" % repr(sensor_num_str)) from e
-
-            sensor_def: TxSensorDefinition = (transmitter_id, sensor_type, sensor_num)
-
-        else:
-            raise ValueError(
-                "Invalid number of arguments (%d) for sensor definition: %s" % (argument_count, sensor_str))
-
-        sensor_definitions.append(sensor_def)
-
+def flatten_sensor_definitions(sensor_definition_map: SensorDefinitionMap) -> Set[FlatSensorDefinition]:
+    sensor_definitions: Set[FlatSensorDefinition] = set()
+    for tx_id, sensors in sensor_definition_map.items():
+        sensor_definitions.update({(tx_id, sensor_key) for sensor_key in sensors})
     return sensor_definitions
+
+
+def sensor_definition_map_to_config(sensor_definition_map: SensorDefinitionMap) -> dict:
+    return {str(tx_id): sorted(sensor_set) for tx_id, sensor_set in sensor_definition_map.items()}
+
+
+def sensor_definition_map_to_config_comments(sensor_definition_map: SensorDefinitionMap) -> dict:
+    comments_map = dict()
+    for tx_id, sensor_set in sensor_definition_map.items():
+        sensor_list = sorted(sensor_set)
+        if not sensor_list:
+            continue
+
+        sensor_labels = [labels.SENSOR_LABELS[sensor_key] for sensor_key in sensor_list]
+        comments = [
+            "",
+            "Sensors of Transmitter %d:" % tx_id,
+            *["• %s" % sensor_label for sensor_label in sensor_labels],
+        ]
+        comments_map[str(tx_id)] = comments
+
+    return comments_map
 
 
 def parse_mapping_definitions(mappings_list: List[str]) -> MappingDefinitionList:
@@ -202,16 +161,16 @@ class Configuration(object):
                  log_success: bool,
                  log_error: bool,
                  socket_timeout: float,
-                 sensor_definition_set: TxSensorDefinitionSet | None = None):
+                 sensor_definition_map: Optional[SensorDefinitionMap] = None):
         self.host = host
         self.mappings = mappings
         self.polling_interval = polling_interval
         self.max_no_data_iterations = max_no_data_iterations
 
-        if sensor_definition_set is not None:
-            self.sensor_definition_set = sensor_definition_set
+        if sensor_definition_map:
+            self.sensor_definition_map = sensor_definition_map
         else:
-            self.sensor_definition_set = list()
+            self.sensor_definition_map = dict()
 
         self.log_success = log_success
         self.log_error = log_error
@@ -219,6 +178,49 @@ class Configuration(object):
 
     def __repr__(self):
         return str(self.__dict__)
+
+    @classmethod
+    def create(cls, config: dict, driver_name: str) -> 'Configuration':
+        """Create Configuration object from conf_dict"""
+
+        driver_dict = config[driver_name]
+
+        host = driver_dict[KEY_DRIVER_HOST]
+
+        polling_interval = float(driver_dict.get(KEY_DRIVER_POLLING_INTERVAL, POLLING_INTERVAL_DEFAULT))
+        if polling_interval < POLLING_INTERVAL_MIN:
+            raise ValueError(
+                "Polling interval has to be at least %d seconds (got: %d)" % (POLLING_INTERVAL_MIN, polling_interval))
+
+        max_no_data_iterations = to_int(driver_dict.get(KEY_MAX_NO_DATA_ITERATIONS, NO_DATA_ITERATIONS_DEFAULT))
+        if max_no_data_iterations < 1:
+            raise ValueError("%s has to be at least 1" % KEY_MAX_NO_DATA_ITERATIONS)
+
+        mapping_list = to_list(driver_dict.get(KEY_DRIVER_MAPPING, []))
+        mappings = parse_mapping_definitions(mapping_list)
+
+        sensors_section = driver_dict.get(static_config.KEY_SECTION_SENSORS, dict())
+        sensor_definition_map = parse_sensor_definition_map(sensors_section)
+
+        log_success = to_bool(config.get(static_config.KEY_LOG_SUCCESS, False))
+        log_success = to_bool(driver_dict.get(static_config.KEY_LOG_SUCCESS, log_success))
+
+        log_error = to_bool(config.get(static_config.KEY_LOG_FAILURE, True))
+        log_error = to_bool(driver_dict.get(static_config.KEY_LOG_FAILURE, log_error))
+
+        socket_timeout = to_float(config.get('socket_timeout', 20))
+
+        config_obj = cls(
+            host=host,
+            mappings=mappings,
+            polling_interval=polling_interval,
+            max_no_data_iterations=max_no_data_iterations,
+            log_success=log_success,
+            log_error=log_error,
+            socket_timeout=socket_timeout,
+            sensor_definition_map=sensor_definition_map,
+        )
+        return config_obj
 
     def create_mappers(self) -> List[AbstractMapping]:
         return create_mappers(self.mappings, self.log_success, self.log_error)
@@ -229,4 +231,8 @@ class Configuration(object):
 
     @property
     def has_sensors(self) -> bool:
-        return len(self.sensor_definition_set) > 0
+        return len(self.sensor_definition_map) > 0
+
+
+def create_configuration(config: dict, driver_name: str) -> Configuration:
+    return Configuration.create(config, driver_name)

@@ -24,6 +24,8 @@ from configobj import ConfigObj
 
 import weecfg
 import weewx.drivers
+from user.weatherlink_live.configuration import parse_sensor_definition_map, sensor_definition_map_to_config, \
+    sensor_definition_map_to_config_comments
 from user.weatherlink_live.static import config
 
 
@@ -75,6 +77,12 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
 
         if config.KEY_DRIVER_MAPPING in settings:
             del settings[config.KEY_DRIVER_MAPPING]
+
+        old_sensor_section = settings.get(config.KEY_SECTION_SENSORS, dict())
+        old_sensor_settings = parse_sensor_definition_map(old_sensor_section)
+        new_sensor_settings = {**old_sensor_settings}
+        settings[config.KEY_SECTION_SENSORS] = sensor_definition_map_to_config(new_sensor_settings)
+        settings[config.KEY_SECTION_SENSORS].comments = sensor_definition_map_to_config_comments(new_sensor_settings)
 
         return settings
 

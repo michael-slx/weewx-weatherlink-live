@@ -63,13 +63,20 @@ LABEL_BARO_SEA_LEVEL = "Barometer (sea level)"
 
 LABEL_BATTERY_STATUS = "Battery status"
 
-SENSOR_LABELS: Dict[str, str] = {
-    config.SENSOR_TYPE_TEMPERATURE_HUMIDITY: "Temperature/Humidity",
-    config.SENSOR_TYPE_RAIN: "Rain",
-    config.SENSOR_TYPE_WIND: "Wind",
-    config.SENSOR_TYPE_SOLAR: "Solar irradiation",
-    config.SENSOR_TYPE_UV: "UV index",
-    config.SENSOR_TYPE_SOIL_TEMPERATURE: "Soil temperature",
-    config.SENSOR_TYPE_SOIL_MOISTURE: "Soil moisture",
-    config.SENSOR_TYPE_LEAF_WETNESS: "Leaf wetness",
+SENSOR_LABELS: Dict[config.SensorType, str] = {
+    config.SensorType.TEMPERATURE_HUMIDITY: "Temperature/Humidity",
+    config.SensorType.RAIN: "Rain",
+    config.SensorType.WIND: "Wind",
+    config.SensorType.SOLAR: "Solar irradiation",
+    config.SensorType.UV: "UV index",
+    config.SensorType.SOIL_TEMPERATURE_1: "Soil temperature (Port #1)",
+    config.SensorType.SOIL_TEMPERATURE_2: "Soil temperature (Port #2)",
+    config.SensorType.SOIL_TEMPERATURE_3: "Soil temperature (Port #3)",
+    config.SensorType.SOIL_TEMPERATURE_4: "Soil temperature (Port #4)",
+    config.SensorType.SOIL_MOISTURE_1: "Soil moisture (Port #1)",
+    config.SensorType.SOIL_MOISTURE_2: "Soil moisture (Port #2)",
+    config.SensorType.SOIL_MOISTURE_3: "Soil moisture (Port #3)",
+    config.SensorType.SOIL_MOISTURE_4: "Soil moisture (Port #4)",
+    config.SensorType.LEAF_WETNESS_1: "Leaf wetness (Port #1)",
+    config.SensorType.LEAF_WETNESS_2: "Leaf wetness (Port #2)",
 }

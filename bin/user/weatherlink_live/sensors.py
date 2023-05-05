@@ -1,5 +1,5 @@
 import logging
-from typing import List, Set
+from typing import List, Set, Iterable
 
 from user.weatherlink_live import configuration, mappers
 from user.weatherlink_live.static import config as config_static
@@ -7,20 +7,22 @@ from user.weatherlink_live.static import config as config_static
 logger = logging.getLogger(__name__)
 
 
-def create_mappers_from_sensors(sensors: configuration.TxSensorDefinitionSet,
+def create_mappers_from_sensors(sensors: configuration.SensorDefinitionMap,
                                 config: configuration.Configuration) -> List[mappers.AbstractMapping]:
     mapper_list = list()
     used_mapping_targets = list()
 
-    mapper_list.extend(_create_sensor_mappers(sensors, config, used_mapping_targets))
-    mapper_list.extend(_create_compound_mappers(sensors, config, used_mapping_targets))
+    sensor_list = sorted(configuration.flatten_sensor_definitions(sensors))
+
+    mapper_list.extend(_create_sensor_mappers(sensor_list, config, used_mapping_targets))
+    mapper_list.extend(_create_compound_mappers(sensor_list, config, used_mapping_targets))
     mapper_list.extend(_create_internal_mappers(config, used_mapping_targets))
 
     logger.debug("Created %d mappers from %d sensors" % (len(mapper_list), len(sensors)))
     return mapper_list
 
 
-def _create_sensor_mappers(sensors: configuration.TxSensorDefinitionSet,
+def _create_sensor_mappers(sensors: List[configuration.FlatSensorDefinition],
                            config: configuration.Configuration,
                            used_mapping_targets: list) -> List[mappers.AbstractMapping]:
     mapper_list = list()
@@ -32,64 +34,58 @@ def _create_sensor_mappers(sensors: configuration.TxSensorDefinitionSet,
     return mapper_list
 
 
-def _create_sensor_mapper(sensors: configuration.TxSensorDefinitionSet,
+def _create_sensor_mapper(sensor: configuration.FlatSensorDefinition,
                           config: configuration.Configuration,
                           used_mapping_targets: list) -> mappers.AbstractMapping:
     log_success = config.log_success
     log_error = config.log_error
-    tx_id, sensor_type, sensor_num = sensors
+    tx_id, sensor_key = sensor
 
-    logger.debug("Creating mapping for sensor %s (tx id: %s; num.: %s)" % (sensor_type,
-                                                                           str(tx_id),
-                                                                           str(sensor_num) if sensor_num is not None else "None"))
+    logger.debug("Creating mapping for sensor %s (tx id: %s)" % (sensor_key, str(tx_id)))
 
-    if sensor_type == config_static.SENSOR_TYPE_TEMPERATURE_HUMIDITY:
+    if sensor_key == config_static.SensorType.TEMPERATURE_HUMIDITY:
         return mappers.THMapping([str(tx_id)], used_mapping_targets, log_success, log_error)
 
-    elif sensor_type == config_static.SENSOR_TYPE_RAIN:
+    elif sensor_key == config_static.SensorType.RAIN:
         return mappers.RainMapping([str(tx_id)], used_mapping_targets, log_success, log_error)
 
-    elif sensor_type == config_static.SENSOR_TYPE_WIND:
+    elif sensor_key == config_static.SensorType.WIND:
         return mappers.WindMapping([str(tx_id)], used_mapping_targets, log_success, log_error)
 
-    elif sensor_type == config_static.SENSOR_TYPE_UV:
+    elif sensor_key == config_static.SensorType.UV:
         return mappers.UvMapping([str(tx_id)], used_mapping_targets, log_success, log_error)
 
-    elif sensor_type == config_static.SENSOR_TYPE_SOLAR:
+    elif sensor_key == config_static.SensorType.SOLAR:
         return mappers.SolarMapping([str(tx_id)], used_mapping_targets, log_success, log_error)
 
-    elif sensor_type == config_static.SENSOR_TYPE_SOIL_TEMPERATURE:
-        if sensor_num is None:
-            raise ValueError("Sensor number is required for sensor type %s" % sensor_type)
-        if sensor_num not in range(1, 4 + 1):
-            raise ValueError("Sensor number for sensor type %s has to be in range 1 - 4 (got: %d)" % (sensor_type,
-                                                                                                      sensor_num))
+    elif sensor_key == config_static.SensorType.SOIL_TEMPERATURE_1:
+        return mappers.SoilTempMapping([str(tx_id), str(1)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.SOIL_TEMPERATURE_2:
+        return mappers.SoilTempMapping([str(tx_id), str(2)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.SOIL_TEMPERATURE_3:
+        return mappers.SoilTempMapping([str(tx_id), str(3)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.SOIL_TEMPERATURE_4:
+        return mappers.SoilTempMapping([str(tx_id), str(4)], used_mapping_targets, log_success, log_error)
 
-        return mappers.SoilTempMapping([str(tx_id), str(sensor_num)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.SOIL_MOISTURE_1:
+        return mappers.SoilMoistureMapping([str(tx_id), str(1)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.SOIL_MOISTURE_2:
+        return mappers.SoilMoistureMapping([str(tx_id), str(2)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.SOIL_MOISTURE_3:
+        return mappers.SoilMoistureMapping([str(tx_id), str(3)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.SOIL_MOISTURE_4:
+        return mappers.SoilMoistureMapping([str(tx_id), str(4)], used_mapping_targets, log_success, log_error)
 
-    elif sensor_type == config_static.SENSOR_TYPE_SOIL_MOISTURE:
-        if sensor_num is None:
-            raise ValueError("Sensor number is required for sensor type %s" % sensor_type)
-        if sensor_num not in range(1, 4 + 1):
-            raise ValueError("Sensor number for sensor type %s has to be in range 1 - 4 (got: %d)" % (sensor_type,
-                                                                                                      sensor_num))
-
-        return mappers.SoilMoistureMapping([str(tx_id), str(sensor_num)], used_mapping_targets, log_success, log_error)
-
-    elif sensor_type == config_static.SENSOR_TYPE_LEAF_WETNESS:
-        if sensor_num is None:
-            raise ValueError("Sensor number is required for sensor type %s" % sensor_type)
-        if sensor_num not in range(1, 2 + 1):
-            raise ValueError("Sensor number for sensor type %s has to be in range 1 - 2 (got: %d)" % (sensor_type,
-                                                                                                      sensor_num))
-
-        return mappers.LeafWetnessMapping([str(tx_id), str(sensor_num)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.LEAF_WETNESS_1:
+        return mappers.LeafWetnessMapping([str(tx_id), str(1)], used_mapping_targets, log_success, log_error)
+    elif sensor_key == config_static.SensorType.LEAF_WETNESS_2:
+        return mappers.LeafWetnessMapping([str(tx_id), str(2)], used_mapping_targets, log_success, log_error)
 
     else:
-        raise ValueError("Unknown sensor type: %s" % sensor_type)
+        raise ValueError("Unknown sensor key: %s" % sensor_key)
 
 
-def _create_compound_mappers(sensors: configuration.TxSensorDefinitionSet,
+def _create_compound_mappers(sensors: List[configuration.FlatSensorDefinition],
                              config: configuration.Configuration,
                              used_mapping_targets: list) -> List[mappers.AbstractMapping]:
     log_success = config.log_success
@@ -124,7 +120,7 @@ def _create_compound_mappers(sensors: configuration.TxSensorDefinitionSet,
     return mapper_list
 
 
-def _get_tx_ids_for_thsw(sensors: configuration.TxSensorDefinitionSet) -> Set[int]:
+def _get_tx_ids_for_thsw(sensors: List[configuration.FlatSensorDefinition], ) -> Set[int]:
     tx_ids = {
         tx_id
         for tx_id
@@ -137,7 +133,7 @@ def _get_tx_ids_for_thsw(sensors: configuration.TxSensorDefinitionSet) -> Set[in
     return tx_ids
 
 
-def _get_tx_ids_for_thw(sensors: configuration.TxSensorDefinitionSet) -> Set[int]:
+def _get_tx_ids_for_thw(sensors: Iterable[configuration.FlatSensorDefinition], ) -> Set[int]:
     tx_ids = {
         tx_id
         for tx_id
@@ -149,20 +145,20 @@ def _get_tx_ids_for_thw(sensors: configuration.TxSensorDefinitionSet) -> Set[int
     return tx_ids
 
 
-def _get_tx_ids(sensors: configuration.TxSensorDefinitionSet) -> Set[int]:
+def _get_tx_ids(sensors: Iterable[configuration.FlatSensorDefinition], ) -> Set[int]:
     tx_ids = {sensor[0] for sensor in sensors}
     return tx_ids
 
 
-def _has_sensors(sensors: configuration.TxSensorDefinitionSet,
+def _has_sensors(sensors: Iterable[configuration.FlatSensorDefinition],
                  expected_tx_id: int,
                  expected_sensor_types: Set[str]) -> bool:
-    for tx_id, sensor_type, _ in sensors:
+    for tx_id, sensor_key in sensors:
         if tx_id != expected_tx_id:
             continue
 
-        if sensor_type in expected_sensor_types:
-            expected_sensor_types.remove(sensor_type)
+        if sensor_key in expected_sensor_types:
+            expected_sensor_types.remove(sensor_key)
 
     return len(expected_sensor_types) == 0
 

@@ -35,9 +35,16 @@ class SensorType(enum.StrEnum):
     WIND = 'wind'
     SOLAR = 'solar'
     UV = 'uv'
-    SOIL_TEMPERATURE = 'soil_temp'
-    SOIL_MOISTURE = 'soil_moisture'
-    LEAF_WETNESS = 'leaf_wetness'
+    SOIL_TEMPERATURE_1 = 'soil_temp_1'
+    SOIL_TEMPERATURE_2 = 'soil_temp_2'
+    SOIL_TEMPERATURE_3 = 'soil_temp_3'
+    SOIL_TEMPERATURE_4 = 'soil_temp_4'
+    SOIL_MOISTURE_1 = 'soil_moisture_1'
+    SOIL_MOISTURE_2 = 'soil_moisture_2'
+    SOIL_MOISTURE_3 = 'soil_moisture_3'
+    SOIL_MOISTURE_4 = 'soil_moisture_4'
+    LEAF_WETNESS_1 = 'leaf_wetness_1'
+    LEAF_WETNESS_2 = 'leaf_wetness_2'
 
 
 SENSOR_TYPE_TEMPERATURE_HUMIDITY: str = SensorType.TEMPERATURE_HUMIDITY
@@ -45,9 +52,9 @@ SENSOR_TYPE_RAIN: str = SensorType.RAIN
 SENSOR_TYPE_WIND: str = SensorType.WIND
 SENSOR_TYPE_SOLAR: str = SensorType.SOLAR
 SENSOR_TYPE_UV: str = SensorType.UV
-SENSOR_TYPE_SOIL_TEMPERATURE: str = SensorType.SOIL_TEMPERATURE
-SENSOR_TYPE_SOIL_MOISTURE: str = SensorType.SOIL_MOISTURE
-SENSOR_TYPE_LEAF_WETNESS: str = SensorType.LEAF_WETNESS
+SENSOR_TYPE_SOIL_TEMPERATURE: str = 'soil_temp'
+SENSOR_TYPE_SOIL_MOISTURE: str = 'soil_moisture'
+SENSOR_TYPE_LEAF_WETNESS: str = 'leaf_wetness'
 
 KEY_MAPPER_TEMPERATURE_ONLY = 't'
 KEY_MAPPER_TEMPERATURE_HUMIDITY = 'th'
