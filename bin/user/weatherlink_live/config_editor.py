@@ -24,19 +24,16 @@ from configobj import ConfigObj
 
 import weecfg
 import weewx.drivers
+from user.weatherlink_live import sensor_prompt, cli
 from user.weatherlink_live.configuration import parse_sensor_definition_map, sensor_definition_map_to_config, \
     sensor_definition_map_to_config_comments
 from user.weatherlink_live.static import config
 
 
 def _prompt_host(old_host: Optional[str]) -> str:
-    print("\n")
     print("Specify the IP address (e.g. 192.168.1.123) or hostname (e.g. weatherlinklive")
     print("or weatherlinklive.localdomain) of the WeatherLink LIVE.)")
-    print("The device must be reachable via HTTP (TCP port 80) and must be on the same")
-    print("subnet/VLAN. If this is not the case, 2.5-second live updates will not work")
-    print("(sent as broadcast packets on UDP port 22222).")
-    return weecfg.prompt_with_options("IP/Hostname", old_host)
+    return weecfg.prompt_with_options(f"{cli.Colors.BOLD}Enter IP or Hostname{cli.Colors.END}", old_host)
 
 
 class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
@@ -70,17 +67,25 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
     def prompt_for_settings(self) -> Dict[str, Any]:
         settings = self.existing_options
 
+        print("")
+        print("")
+        print("")
+
         old_host = settings.get(config.KEY_DRIVER_HOST, None)
         old_host = old_host if old_host and len(old_host) > 0 else None
         host = _prompt_host(old_host)
         settings[config.KEY_DRIVER_HOST] = host
+
+        print("")
+        print("")
+        print("")
 
         if config.KEY_DRIVER_MAPPING in settings:
             del settings[config.KEY_DRIVER_MAPPING]
 
         old_sensor_section = settings.get(config.KEY_SECTION_SENSORS, dict())
         old_sensor_settings = parse_sensor_definition_map(old_sensor_section)
-        new_sensor_settings = {**old_sensor_settings}
+        new_sensor_settings = sensor_prompt.prompt_sensors(old_sensor_settings)
         settings[config.KEY_SECTION_SENSORS] = sensor_definition_map_to_config(new_sensor_settings)
         settings[config.KEY_SECTION_SENSORS].comments = sensor_definition_map_to_config_comments(new_sensor_settings)
 
