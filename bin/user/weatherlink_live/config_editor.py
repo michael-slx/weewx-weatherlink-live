@@ -60,8 +60,13 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
 
     # Configuration of available sensors
     [[sensors]]
-        # TX 1 has Temperature/Humidity, Rain, Wind, Solar and UV
-        1 = th, rain, wind, solar, uv
+        # Sensors of Transmitter 1:
+        # • Rain
+        # • Solar irradiation
+        # • Temperature/Humidity
+        # • UV index
+        # • Wind
+        1 = rain, solar, temp_hum, uv, wind
 """
 
     def prompt_for_settings(self) -> Dict[str, Any]:
