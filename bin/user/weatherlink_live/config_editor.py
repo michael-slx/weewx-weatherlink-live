@@ -18,8 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
+import configobj
 from configobj import ConfigObj
 
 import weecfg
@@ -30,10 +31,32 @@ from user.weatherlink_live.configuration import parse_sensor_definition_map, sen
 from user.weatherlink_live.static import config
 
 
-def _prompt_host(old_host: Optional[str]) -> str:
+def _prompt_host(settings: configobj.ConfigObj) -> None:
+    old_host = settings.get(config.KEY_DRIVER_HOST, None)
+    old_host = old_host if old_host and len(old_host) > 0 else None
     print("Specify the IP address (e.g. 192.168.1.123) or hostname (e.g. weatherlinklive")
     print("or weatherlinklive.localdomain) of the WeatherLink LIVE.)")
-    return weecfg.prompt_with_options(f"{cli.Colors.BOLD}Enter IP or Hostname{cli.Colors.END}", old_host)
+    host = weecfg.prompt_with_options(f"{cli.Colors.BOLD}Enter IP or Hostname{cli.Colors.END}", old_host)
+    settings[config.KEY_DRIVER_HOST] = host
+
+
+def _remove_existing_mapping_config(settings: configobj.ConfigObj) -> None:
+    if config.KEY_DRIVER_MAPPING in settings:
+        del settings[config.KEY_DRIVER_MAPPING]
+
+
+def _prompt_sensors(settings: configobj.ConfigObj) -> None:
+    old_sensor_section = settings.get(config.KEY_SECTION_SENSORS, dict())
+    old_sensor_settings = parse_sensor_definition_map(old_sensor_section)
+    new_sensor_settings = sensor_prompt.prompt_sensors(old_sensor_settings)
+    settings[config.KEY_SECTION_SENSORS] = sensor_definition_map_to_config(new_sensor_settings)
+    settings[config.KEY_SECTION_SENSORS].comments = sensor_definition_map_to_config_comments(new_sensor_settings)
+
+
+def _print_database_schema_info() -> None:
+    print(f"""If you haven't done so yet, it is recommended you switch to the custom database
+schema that is provided by this driver:
+user.weatherlink_live.schema""")
 
 
 class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
@@ -76,23 +99,21 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
         print("")
         print("")
 
-        old_host = settings.get(config.KEY_DRIVER_HOST, None)
-        old_host = old_host if old_host and len(old_host) > 0 else None
-        host = _prompt_host(old_host)
-        settings[config.KEY_DRIVER_HOST] = host
+        _prompt_host(settings)
 
         print("")
         print("")
         print("")
 
-        if config.KEY_DRIVER_MAPPING in settings:
-            del settings[config.KEY_DRIVER_MAPPING]
+        _remove_existing_mapping_config(settings)
 
-        old_sensor_section = settings.get(config.KEY_SECTION_SENSORS, dict())
-        old_sensor_settings = parse_sensor_definition_map(old_sensor_section)
-        new_sensor_settings = sensor_prompt.prompt_sensors(old_sensor_settings)
-        settings[config.KEY_SECTION_SENSORS] = sensor_definition_map_to_config(new_sensor_settings)
-        settings[config.KEY_SECTION_SENSORS].comments = sensor_definition_map_to_config_comments(new_sensor_settings)
+        _prompt_sensors(settings)
+
+        print("")
+        print("")
+        print("")
+
+        _print_database_schema_info()
 
         return settings
 
