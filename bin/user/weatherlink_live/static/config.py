@@ -30,7 +30,7 @@ KEY_MAX_NO_DATA_ITERATIONS = "max_no_data_iterations"
 KEY_SECTION_SENSORS = 'sensors'
 
 
-class SensorType(enum.StrEnum):
+class SensorType(enum.Enum):
     TEMPERATURE_HUMIDITY = 'temp_hum'
     RAIN = 'rain'
     WIND = 'wind'
@@ -47,15 +47,17 @@ class SensorType(enum.StrEnum):
     LEAF_WETNESS_1 = 'leaf_wetness_1'
     LEAF_WETNESS_2 = 'leaf_wetness_2'
 
+    # Adapted from https://stackoverflow.com/a/71839532/4644268
+    def __lt__(self, other: 'SensorType') -> bool:
+        if self == other:
+            return False
+        for elem in SensorType:
+            if self == elem:
+                return True
+            elif other == elem:
+                return False
+        raise RuntimeError()
 
-SENSOR_TYPE_TEMPERATURE_HUMIDITY: str = SensorType.TEMPERATURE_HUMIDITY
-SENSOR_TYPE_RAIN: str = SensorType.RAIN
-SENSOR_TYPE_WIND: str = SensorType.WIND
-SENSOR_TYPE_SOLAR: str = SensorType.SOLAR
-SENSOR_TYPE_UV: str = SensorType.UV
-SENSOR_TYPE_SOIL_TEMPERATURE: str = 'soil_temp'
-SENSOR_TYPE_SOIL_MOISTURE: str = 'soil_moisture'
-SENSOR_TYPE_LEAF_WETNESS: str = 'leaf_wetness'
 
 KEY_MAPPER_TEMPERATURE_ONLY = 't'
 KEY_MAPPER_TEMPERATURE_HUMIDITY = 'th'

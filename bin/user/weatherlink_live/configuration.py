@@ -83,12 +83,17 @@ def _parse_sensor_set(tx_sensor_list: List[str]) -> SensorDefinitionSet:
 def flatten_sensor_definitions(sensor_definition_map: SensorDefinitionMap) -> Set[FlatSensorDefinition]:
     sensor_definitions: Set[FlatSensorDefinition] = set()
     for tx_id, sensors in sensor_definition_map.items():
-        sensor_definitions.update({(tx_id, sensor_key) for sensor_key in sensors})
+        flat_tx_sensors: Set[FlatSensorDefinition] = {(tx_id, sensor_key) for sensor_key in sensors}
+        sensor_definitions.update(flat_tx_sensors)
     return sensor_definitions
 
 
 def sensor_definition_map_to_config(sensor_definition_map: SensorDefinitionMap) -> dict:
-    return {str(tx_id): sorted(sensor_set) for tx_id, sensor_set in sensor_definition_map.items()}
+    return {
+        str(tx_id): [sensor.value for sensor in sorted(sensor_set)]
+        for tx_id, sensor_set
+        in sensor_definition_map.items()
+    }
 
 
 def sensor_definition_map_to_config_comments(sensor_definition_map: SensorDefinitionMap) -> dict:

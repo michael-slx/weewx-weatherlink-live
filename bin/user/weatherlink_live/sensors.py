@@ -145,9 +145,9 @@ def _get_tx_ids_for_thsw(sensors: List[configuration.FlatSensorDefinition], ) ->
         tx_id
         for tx_id
         in _get_tx_ids(sensors)
-        if _has_sensors(sensors, tx_id, {config_static.SENSOR_TYPE_TEMPERATURE_HUMIDITY,
-                                         config_static.SENSOR_TYPE_WIND,
-                                         config_static.SENSOR_TYPE_SOLAR})
+        if _has_sensors(sensors, tx_id, {config_static.SensorType.TEMPERATURE_HUMIDITY.value,
+                                         config_static.SensorType.WIND.value,
+                                         config_static.SensorType.SOLAR.value})
     }
     logger.debug("%d transmitters with THSW metric: %s" % (len(tx_ids), str(tx_ids)))
     return tx_ids
@@ -158,8 +158,8 @@ def _get_tx_ids_for_thw(sensors: Iterable[configuration.FlatSensorDefinition], )
         tx_id
         for tx_id
         in _get_tx_ids(sensors)
-        if _has_sensors(sensors, tx_id, {config_static.SENSOR_TYPE_TEMPERATURE_HUMIDITY,
-                                         config_static.SENSOR_TYPE_WIND})
+        if _has_sensors(sensors, tx_id, {config_static.SensorType.TEMPERATURE_HUMIDITY.value,
+                                         config_static.SensorType.WIND.value})
     }
     logger.debug("%d transmitters with THW metric: %s" % (len(tx_ids), str(tx_ids)))
     return tx_ids
