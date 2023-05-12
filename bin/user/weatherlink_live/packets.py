@@ -98,7 +98,7 @@ class DavisConditionsPacket(DavisPacket):
 
         if filtered is None:
             raise NotInPacket("No transmitter found for type %s and tx id %s in packet of type %s" % (
-            repr(dst), repr(tx), type(self).__name__))
+                repr(dst), repr(tx), type(self).__name__))
         if observation not in filtered:
             raise NotInPacket("Observation %s not found in packet of type %s" % (observation, type(self).__name__))
 

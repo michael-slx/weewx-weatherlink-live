@@ -20,10 +20,11 @@
 
 import json
 import logging
-import select
 import threading
 from json import JSONDecodeError
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
+
+import select
 
 from user.weatherlink_live.callback import PacketCallback
 from user.weatherlink_live.packets import WlUdpBroadcastPacket
