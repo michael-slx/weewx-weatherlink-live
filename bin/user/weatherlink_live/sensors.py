@@ -36,6 +36,7 @@ def create_mappers_from_sensors(sensors: configuration.SensorDefinitionMap,
 
     mapper_list.extend(_create_sensor_mappers(sensor_list, config, used_mapping_targets))
     mapper_list.extend(_create_compound_mappers(sensor_list, config, used_mapping_targets))
+    mapper_list.extend(_create_battery_mappers(sensor_list, config, used_mapping_targets))
     mapper_list.extend(_create_internal_mappers(config, used_mapping_targets))
 
     logger.debug("Created %d mappers from %d sensors" % (len(mapper_list), len(sensors)))
@@ -181,6 +182,25 @@ def _has_sensors(sensors: Iterable[configuration.FlatSensorDefinition],
             expected_sensor_types.remove(sensor_key)
 
     return len(expected_sensor_types) == 0
+
+
+def _create_battery_mappers(sensors: List[configuration.FlatSensorDefinition],
+                            config: configuration.Configuration,
+                            used_mapping_targets: list) -> List[mappers.AbstractMapping]:
+    return [
+        _create_battery_mapper_for_tx(sensors, tx_id, config, used_mapping_targets)
+        for tx_id
+        in _get_tx_ids(sensors)
+    ]
+
+
+def _create_battery_mapper_for_tx(sensors: List[configuration.FlatSensorDefinition],
+                                  tx_id: int,
+                                  config: configuration.Configuration,
+                                  used_mapping_targets: list) -> mappers.AbstractMapping:
+    mapper = mappers.BatteryStatusMapping([str(tx_id)], used_mapping_targets, config.log_success, config.log_error)
+    used_mapping_targets.extend(mapper.targets.values())
+    return mapper
 
 
 def _create_internal_mappers(config: configuration.Configuration,
