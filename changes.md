@@ -170,3 +170,11 @@ Configuration values are checked to be within bounds immediately during initiali
 - **New documentation**
 
 Documentation was expanded and split into multiple separate documents.
+
+## Version 1.1.1
+
+- **Fix linting, spelling and compatibility issues**
+
+Driver is now compatible with **Python 3.7 or later**.
+
+- **State required Python version in documentation**
