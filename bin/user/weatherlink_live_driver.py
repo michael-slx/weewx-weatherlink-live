@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from user import weatherlink_live
+from . import weatherlink_live
 
 DRIVER_NAME = weatherlink_live.DRIVER_NAME
 DRIVER_VERSION = weatherlink_live.DRIVER_VERSION

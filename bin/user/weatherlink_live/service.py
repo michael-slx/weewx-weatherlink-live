@@ -68,7 +68,7 @@ class WllWindGustService(StdService):
         self._log_success("Clearing max gust values")
         self.max_loop_gust = dict()
 
-    def startup(self, event):
+    def startup(self, _):
         self._log_success("Service startup")
         self._clear()
 
@@ -104,6 +104,6 @@ class WllWindGustService(StdService):
             self._log_success("Updating record with dict: %s" % repr(self.max_loop_gust))
             record.update(self.max_loop_gust)
 
-    def end_archive_period(self, event):
+    def end_archive_period(self, _):
         self._log_success("End of archive period")
         self._clear()

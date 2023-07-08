@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 from optparse import OptionParser
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from user.weatherlink_live import configuration
 from user.weatherlink_live.mappers import AbstractMapping
@@ -27,7 +27,7 @@ from user.weatherlink_live.static import version
 from weewx.drivers import AbstractConfigurator
 
 
-def _create_mapping_tree(mappers: List[AbstractMapping]) -> Dict[str, Dict[str, Dict[str, str | List[str]]]]:
+def _create_mapping_tree(mappers: List[AbstractMapping]) -> Dict[str, Dict[str, Dict[str, Union[str, List[str]]]]]:
     mapping_tree = dict()
 
     for mapper in mappers:
@@ -46,7 +46,7 @@ def _create_mapping_tree(mappers: List[AbstractMapping]) -> Dict[str, Dict[str, 
     return mapping_tree
 
 
-def _print_mapping_tree(mapping_tree: Dict[str, Dict[str, Dict[str, str | List[str]]]]) -> None:
+def _print_mapping_tree(mapping_tree: Dict[str, Dict[str, Dict[str, Union[str, List[str]]]]]) -> None:
     print("")
     print("=== Configured Mappings ===")
     print("")

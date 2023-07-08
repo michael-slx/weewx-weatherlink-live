@@ -23,7 +23,7 @@ Users that make use of these advanced features have to ensure that WeeWX can con
 
 If you haven't done so already, install the following packages:
 
-- **Python 3**: WeeWX itself can run on either Python 2 or 3. This driver however requires Python 3.
+- **Python 3.7** or later: WeeWX itself can run on either Python 2 or 3. This driver however requires Python 3.7 or later.
 - **WeeWX** including all of its dependencies
 - **Python module `requests`**: This driver uses the Python `requests` module for communicating with the WeatherLink device.
 

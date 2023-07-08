@@ -121,7 +121,7 @@ LEAF_TEMP = ["leafTemp1", "leafTemp2"]
 # LEAF WETNESS
 LEAF_WETNESS = ["leafWet1", "leafWet2"]
 
-# WLL Thermo/Hygro (Indoor)
+# WLL Thermo/Hygrometer (Indoor)
 INDOOR_TEMP = ["inTemp"]
 INDOOR_HUM = ["inHumidity"]
 INDOOR_DEW_POINT = ["inDewpoint"]
@@ -130,12 +130,6 @@ INDOOR_HEAT_INDEX = ["inHeatindex"]
 # WLL Baro
 BARO_ABSOLUTE = ["pressure"]
 BARO_SEA_LEVEL = ["altimeter"]  # the WLL doesn't use temperature to calculate sea level pressure
-
-# AIRLINK PM
-# AirLink's TH sensor is treated like any TH sensor
-PM1 = ["pm1_0"]
-PM2p5 = ["pm2_5"]
-PM10 = ["pm10_0"]
 
 # Battery status
 BATTERY_STATUS = ['batteryStatus1',

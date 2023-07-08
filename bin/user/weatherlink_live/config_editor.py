@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, Tuple, List, Optional
 
 import weecfg
 import weewx.drivers
@@ -51,10 +51,11 @@ _MAPPINGS_TEMPLATES: _MAPPER_TEMPLATE_LIST = [
 ]
 
 _URL_HELP_INSTALLATION = "https://github.com/michael-slx/weewx-weatherlink-live/blob/develop/docs/installation.md"
-_URL_HELP_MAPPING_CONFIGURATION = "https://github.com/michael-slx/weewx-weatherlink-live/blob/develop/docs/configuration.md#defining-mappings"
+_URL_HELP_MAPPING_CONFIGURATION = "https://github.com/michael-slx/weewx-weatherlink-live/blob/develop/docs" \
+                                  "/configuration.md#defining-mappings"
 
 
-def _prompt_host(old_host: str | None) -> str:
+def _prompt_host(old_host: Optional[str]) -> str:
     print("\n")
     print("Specify the IP address (e.g. 192.168.1.123) or hostname (e.g. weatherlinklive")
     print("or weatherlinklive.localdomain) of the WeatherLink LIVE.)")

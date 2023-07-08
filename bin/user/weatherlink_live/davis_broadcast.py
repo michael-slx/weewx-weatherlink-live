@@ -20,10 +20,11 @@
 
 import json
 import logging
-import select
 import threading
 from json import JSONDecodeError
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST, SO_REUSEADDR
+
+import select
 
 from user.weatherlink_live.callback import PacketCallback
 from user.weatherlink_live.packets import WlUdpBroadcastPacket
@@ -82,7 +83,7 @@ class WllBroadcastReceiver(object):
         self.thread.join(self.wait_timeout * 3)
 
         if self.thread.is_alive():
-            log.warn("Broadcast reception thread still alive. Force closing socket")
+            log.warning("Broadcast reception thread still alive. Force closing socket")
 
         if self.sock is not None:
             self.sock.close()

@@ -134,6 +134,19 @@ class WeatherlinkLiveDriver(AbstractDevice):
             self.data_event
         )
 
+    @property
+    def archive_interval(self):
+        raise NotImplementedError("Not supported")
+
+    def genArchiveRecords(self, _):
+        raise NotImplementedError("Not supported")
+
+    def getTime(self):
+        raise NotImplementedError("Not supported")
+
+    def setTime(self):
+        raise NotImplementedError("Not supported")
+
     def closePort(self):
         """Close connection"""
 

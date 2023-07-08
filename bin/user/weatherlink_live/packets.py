@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 TxEntry = Dict[str, Optional[Any]]
 ConditionSet = List[TxEntry]
-TxList = List[Tuple[DataStructureType, int | None]]
+TxList = List[Tuple[DataStructureType, Optional[int]]]
 
 
 class NotInPacket(Exception):
@@ -85,7 +85,8 @@ class DavisConditionsPacket(DavisPacket):
         """
         Find the value of an observation in this packet
 
-        When enforce_unique is set to true, a ValueError is raised if the combination of dst and tx does not result in an unique sensor.
+        When enforce_unique is set to true, a ValueError is raised if the combination of dst and tx does not result
+        in a unique sensor.
 
         :param observation: name of the requested observation
         :param dst: data structure type for filtering
@@ -97,8 +98,11 @@ class DavisConditionsPacket(DavisPacket):
         filtered = self._find_tx_entry(dst, tx)
 
         if filtered is None:
-            raise NotInPacket("No transmitter found for type %s and tx id %s in packet of type %s" % (
-            repr(dst), repr(tx), type(self).__name__))
+            raise NotInPacket(
+                "No transmitter found for type %s and tx id %s in packet of type %s" % (repr(dst),
+                                                                                        repr(tx),
+                                                                                        type(self).__name__)
+            )
         if observation not in filtered:
             raise NotInPacket("Observation %s not found in packet of type %s" % (observation, type(self).__name__))
 
@@ -153,7 +157,7 @@ class DavisConditionsPacket(DavisPacket):
 
         :param observation_names: Set of observation names (keys) to be checked
         :param tx_type: Type of transmitter to check
-        :param tx_id: Id of transmitter to check
+        :param tx_id: ID of transmitter to check
         :return: `true` if all observations exist for the specified transmitter; `false` otherwise
         :raise ValueError: if the given combination of tx type and id is not unique
                 """
