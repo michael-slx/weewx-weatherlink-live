@@ -121,7 +121,7 @@ LEAF_TEMP = ["leafTemp1", "leafTemp2"]
 # LEAF WETNESS
 LEAF_WETNESS = ["leafWet1", "leafWet2"]
 
-# WLL Thermo/Hygro (Indoor)
+# WLL Thermo/Hygrometer (Indoor)
 INDOOR_TEMP = ["inTemp"]
 INDOOR_HUM = ["inHumidity"]
 INDOOR_DEW_POINT = ["inDewpoint"]

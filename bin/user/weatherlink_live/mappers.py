@@ -22,7 +22,7 @@
 Mappings of API to observations
 """
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from user.weatherlink_live.packets import NotInPacket, DavisConditionsPacket
 from user.weatherlink_live.static import PacketSource, targets, labels
@@ -89,7 +89,10 @@ class AbstractMapping(object):
                 index + 1, str(self), repr(opts[index])
             )) from e
 
-    def __search_multi_targets(self, available_map_targets_dict: dict = (), used_map_targets: list = []) -> dict:
+    def __search_multi_targets(self, available_map_targets_dict: dict = (), used_map_targets=None) -> dict:
+        if used_map_targets is None:
+            used_map_targets = []
+
         if len(available_map_targets_dict) < 1:
             return {}
 
@@ -131,7 +134,7 @@ class AbstractMapping(object):
         raise NotImplementedError()
 
     @property
-    def map_table(self) -> Dict[str, str | list[str]]:
+    def map_table(self) -> Dict[str, Union[str, list[str]]]:
         raise NotImplementedError()
 
 
@@ -339,7 +342,7 @@ class RainMapping(AbstractMapping):
         try:
             return self.rain_bucket_sizes[rain_bucket_size]
         except KeyError as e:
-            raise KeyError("Unexpected rain bucket size %s" % repr(rain_bucket_size))
+            raise KeyError("Unexpected rain bucket size %s" % repr(rain_bucket_size)) from e
 
     @property
     def map_table(self) -> Dict[str, str]:

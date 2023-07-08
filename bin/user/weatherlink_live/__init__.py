@@ -36,7 +36,7 @@ def loader(config_dict, engine):
     return WeatherlinkLiveDriver(config_dict, engine)
 
 
-def configurator_loader(config_dict):
+def configurator_loader(_):
     return WeatherlinkLiveConfigurator()
 
 

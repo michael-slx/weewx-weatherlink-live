@@ -70,8 +70,8 @@ class Scheduler(object):
 
         self._run = True
         self._scheduler_thread = threading.Thread(target=self._run_scheduler)
-        self._scheduler_thread.setName("WLL-HTTP-Scheduler")
-        self._scheduler_thread.setDaemon(True)
+        self._scheduler_thread.name = "WLL-HTTP-Scheduler"
+        self._scheduler_thread.daemon = True
         self._scheduler_thread.start()
 
         self._scheduler_tick()

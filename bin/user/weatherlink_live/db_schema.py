@@ -51,18 +51,19 @@ _rain_count_fields = ['rainCount']  # unit: count
 _rain_count_rate_fields = ['rainCountRate']  # unit: count per hour
 _rain_amount_fields = ['rainSize']  # unit: technically rain amount (inch/mm)
 
-db_schema = {
-    'table': wview_extended.table
-             + [(field, "REAL") for field in _temperature_fields]
-             + [(field, "REAL") for field in _rain_count_fields]
-             + [(field, "REAL") for field in _rain_count_rate_fields]
-             + [(field, "REAL") for field in _rain_amount_fields],
-    'day_summaries': wview_extended.day_summaries
-                     + [(field, "SCALAR") for field in _temperature_fields]
-                     + [(field, "SCALAR") for field in _rain_count_fields]
-                     + [(field, "SCALAR") for field in _rain_count_rate_fields]
-                     + [(field, "SCALAR") for field in _rain_amount_fields]
-}
+_TABLE_FIELDS = wview_extended.table \
+                + [(field, "REAL") for field in _temperature_fields] \
+                + [(field, "REAL") for field in _rain_count_fields] \
+                + [(field, "REAL") for field in _rain_count_rate_fields] \
+                + [(field, "REAL") for field in _rain_amount_fields]
+
+_DAY_SUMMARIES_FIELDS = wview_extended.day_summaries \
+                        + [(field, "SCALAR") for field in _temperature_fields] \
+                        + [(field, "SCALAR") for field in _rain_count_fields] \
+                        + [(field, "SCALAR") for field in _rain_count_rate_fields] \
+                        + [(field, "SCALAR") for field in _rain_amount_fields]
+
+db_schema = {'table': _TABLE_FIELDS, 'day_summaries': _DAY_SUMMARIES_FIELDS}
 
 
 def configure_units() -> None:

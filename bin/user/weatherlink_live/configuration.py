@@ -112,8 +112,9 @@ def build_mapping_definitions(mapping_definitions: MappingDefinitionList) -> Lis
     return [":".join(definition) for definition in mapping_definitions]
 
 
-def create_mappers(mapping_definitions: MappingDefinitionList, log_success: bool, log_error: bool) -> List[
-    AbstractMapping]:
+def create_mappers(mapping_definitions: MappingDefinitionList,
+                   log_success: bool,
+                   log_error: bool) -> List[AbstractMapping]:
     used_record_keys = []
     mappers = []
     for source_opts in mapping_definitions:
