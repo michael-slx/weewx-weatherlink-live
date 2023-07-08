@@ -131,12 +131,6 @@ INDOOR_HEAT_INDEX = ["inHeatindex"]
 BARO_ABSOLUTE = ["pressure"]
 BARO_SEA_LEVEL = ["altimeter"]  # the WLL doesn't use temperature to calculate sea level pressure
 
-# AIRLINK PM
-# AirLink's TH sensor is treated like any TH sensor
-PM1 = ["pm1_0"]
-PM2p5 = ["pm2_5"]
-PM10 = ["pm10_0"]
-
 # Battery status
 BATTERY_STATUS = ['batteryStatus1',
                   'batteryStatus2',
