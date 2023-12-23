@@ -5,6 +5,7 @@ set -e
 PACKAGES=(
   "python"
   "python-pip"
+  "python-pipx"
 )
 PATH_ENTRIES=(
   "$HOME/.local/bin"

@@ -66,5 +66,6 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
                     'bin/user/weatherlink_live/static/targets.py',
                     'bin/user/weatherlink_live/static/version.py',
                 ]),
-            ]
+            ],
+            config=dict(),
         )
