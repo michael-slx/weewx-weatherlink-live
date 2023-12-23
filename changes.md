@@ -178,3 +178,7 @@ Documentation was expanded and split into multiple separate documents.
 Driver is now compatible with **Python 3.7 or later**.
 
 - **State required Python version in documentation**
+
+## Version 1.1.2
+
+- **Fix installation issue** on WeeWX 5 beta
