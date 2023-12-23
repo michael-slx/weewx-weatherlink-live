@@ -16,7 +16,11 @@ else
     git pull origin
 fi
 
+python -m venv ./venv
+. ./venv/bin/activate
 pip install poetry mkdocs mkdocs-material pymdown-extensions
-make pypi-packages
+make pypi-package
+deactivate
 
-pip install $SRC_DIR/dist/weewx-5.*.whl
+pipx install $SRC_DIR/dist/weewx-5.*.whl
+pipx inject weewx requests
