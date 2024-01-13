@@ -12,6 +12,7 @@ PATH_ENTRIES=(
   "/vagrant/vm/bin"
 )
 
+yay -Syy --noconfirm archlinux-keyring 
 yay -Syyuu --noconfirm "${PACKAGES[@]}" 
 
 for path_entry in "${PATH_ENTRIES[@]}"; do
