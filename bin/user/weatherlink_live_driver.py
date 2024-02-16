@@ -17,8 +17,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import logging
 
 from . import weatherlink_live
+
+_logger = logging.getLogger(__name__)
+
+_logger.warning("Using driver \"%s\" is deprecated! Use \"%s\" instead." % ("user.weatherlink_live_driver",
+                                                                            "user.weatherlink_live"))
 
 DRIVER_NAME = weatherlink_live.DRIVER_NAME
 DRIVER_VERSION = weatherlink_live.DRIVER_VERSION
