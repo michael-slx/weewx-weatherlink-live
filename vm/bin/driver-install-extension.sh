@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
 set -e
 
-DRV_TMP_DIR="/tmp/weewx-weatherlink-live-drv"
+SRC_DIR="/vagrant"
 
-[[ ! -e "$DRV_TMP_DIR" ]] || sudo rm -fR "$DRV_TMP_DIR"
-mkdir -p "$DRV_TMP_DIR"
-
-cp -R /vagrant/* "$DRV_TMP_DIR"
-
-if [[ -d "/usr/lib/weewx/user" ]]; then
-    sudo wee_extension --install="$DRV_TMP_DIR"
+declare sudo_cmd
+if [[ -d "/usr/lib/weewx/bin/user" ]]; then
+    sudo_cmd="sudo"
 elif [[ -d "$HOME/weewx-data/bin/user" ]]; then
-    weectl extension install "$DRV_TMP_DIR"
+    sudo_cmd=""
 else
-    echo "Could not determine target WeeWX version"
+    echo "Could not determine target directory"
     echo "Have you installed WeeWX?"
     exit 2
 fi
 
-[[ -e "$DRV_TMP_DIR" ]] && sudo rm -fR "$DRV_TMP_DIR"
+$sudo_cmd weectl extension install "$SRC_DIR" --yes
