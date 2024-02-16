@@ -3,16 +3,27 @@
 set -e
 
 PACKAGES=(
+  "mkdocs"
+  "mkdocs-material"
+  "mkdocs-material-extensions"
+  "poetry"
   "python"
+  "python-cheetah3"
+  "python-configobj"
   "python-pip"
   "python-pipx"
+  "python-pyephem"
+  "python-pymysql"
+  "python-pyserial"
+  "python-pyusb"
+  "python-requests"
 )
 PATH_ENTRIES=(
   "$HOME/.local/bin"
   "/vagrant/vm/bin"
 )
 
-yay -Syy --noconfirm archlinux-keyring 
+yay -Syy --noconfirm pacman-mirrorlist archlinux-keyring
 yay -Syyuu --noconfirm "${PACKAGES[@]}" 
 
 for path_entry in "${PATH_ENTRIES[@]}"; do
