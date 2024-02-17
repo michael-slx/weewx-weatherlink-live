@@ -2,7 +2,7 @@
 set -e
 
 SOURCE_DIR="/vagrant/bin/user"
-SOURCE_FILES=("weatherlink_live")
+SOURCE_FILES=("weatherlink_live" "weatherlink_live_driver.py")
 
 declare sudo_cmd
 declare target_dir
