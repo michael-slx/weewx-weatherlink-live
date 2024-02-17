@@ -22,11 +22,55 @@
 WeeWX extension installer
 '''
 
+from io import StringIO
+
+import configobj
+
 from weecfg.extension import ExtensionInstaller
 
 
 def loader():
     return WeatherLinkLiveInstaller()
+
+
+WLL_CONFIG = """
+[Station]
+    # This section is for information about the station.
+
+    # Set to type of station hardware. There must be a corresponding stanza
+    # in this file, which includes a value for the 'driver' option.
+    station_type = WeatherLinkLive
+
+##############################################################################
+
+[WeatherLinkLive]
+    # This section configures the WeatherLink Live driver.
+
+    # Driver module
+    driver = user.weatherlink_live
+
+    # Host name or IP address of WeatherLink Live
+    host = weatherlink_live
+
+    # Mapping of transmitter ids to WeeWX records
+    mapping = th:1, rain:1, wind:1, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1
+
+##############################################################################
+
+[Accumulator]
+    # This section configures how measurements are accumulated.
+
+    # Measurement rainCount: Count of rain spoon trips
+    # Accumulated by summing all values
+    [[rainCount]]
+        extractor = sum
+
+    # Measurement rainSize: Size of rain spoon
+    # Accumulated by using last value
+    [[rainSize]]
+        extractor = last
+"""
+wll_config_dict = configobj.ConfigObj(StringIO(WLL_CONFIG))
 
 
 class WeatherLinkLiveInstaller(ExtensionInstaller):
@@ -67,5 +111,5 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
                     'bin/user/weatherlink_live/static/version.py',
                 ]),
             ],
-            config=dict(),
+            config=wll_config_dict,
         )
