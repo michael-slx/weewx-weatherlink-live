@@ -14,7 +14,7 @@
 If you are unsure which sensor value will be stored in which metric, you can display the mapping table by running the following command:
 
 ```sh
-> wee_device --print-mapping
+> weectl device --print-mapping
 ```
 
 ## Manually inspecting data
