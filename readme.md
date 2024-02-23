@@ -21,6 +21,7 @@ This driver requires **WeeWX 5**, **Python 3.7** (or later) and the Python **`re
 ## Documentation
 
 - [**Installation manual**](docs/installation.md)
+- [**Upgrade guide**](docs/upgrading.md)
 - [**Configuration reference**](docs/configuration.md)
 - [**Troubleshooting**](docs/troubleshooting.md)
 
