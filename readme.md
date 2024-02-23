@@ -8,7 +8,7 @@ Unfortunately the WeatherLink Live currently does not provide a local API to acc
 An API is available for WeatherLink subscribers. This driver does however not support this interface.
 You also need to ensure that the WeatherLink Live is on the same LAN subnet as WeeWX, so that UDP broadcasts can be received.
 
-This driver requires **WeeWX 4** or **5**, **Python 3.7** (or later) and the Python **`requests` module**.
+This driver requires **WeeWX 5**, **Python 3.7** (or later) and the Python **`requests` module**.
 
 ## Contents
 
