@@ -43,15 +43,11 @@ cat <<END
 
 
 Firstly, use the weewx scripts to install WeeWX:
-- Use ${standout}weewx-install.sh${normal} to install the current WeeWX version
-- Use ${standout}weewx-5-install.sh${normal} to install the WeeWX 5 alpha version directly
+- Use ${standout}weewx-install-aur.sh${normal} to install the current WeeWX version from the AUR
+- Use ${standout}weewx-install-github.sh${normal} to install the current WeeWX version directly
   from the repository
 
 Then, use one of the driver scripts to install the driver:
 - Use ${standout}driver-install-files.sh${normal} to install the driver by copying files
-- Use ${standout}driver-install-extension.sh${normal} to install the driver using wee_extension
-  or weectl
-
-Driver install scripts automatically detect the installed WeeWX version.
-${bold}For WeeWX 5, the user data area has to be created first.${normal}
+- Use ${standout}driver-install-extension.sh${normal} to install the driver using weectl
 END
