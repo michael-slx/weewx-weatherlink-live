@@ -1,4 +1,4 @@
-# Copyright © 2020-2023 Michael Schantl and contributors
+# Copyright © 2020-2024 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,4 +20,4 @@
 
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.1.2"
+DRIVER_VERSION = "1.1.3"

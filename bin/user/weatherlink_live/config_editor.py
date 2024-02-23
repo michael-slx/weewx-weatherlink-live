@@ -1,4 +1,4 @@
-# Copyright © 2020-2023 Michael Schantl and contributors
+# Copyright © 2020-2024 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,27 +26,40 @@ from user.weatherlink_live.utils import to_list
 
 _MAPPER_TEMPLATE_LIST = List[Tuple[str, List[str]]]
 
+WLL_CONFIG = """
+[WeatherLinkLive]
+    # This section configures the WeatherLink Live driver.
+
+    # Driver module
+    driver = user.weatherlink_live
+
+    # Host name or IP address of WeatherLink Live
+    host = weatherlink_live
+
+    # Mapping of transmitter ids to WeeWX records
+    mapping = th:1, rain:1, wind:1, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1
+"""
+
 _MAPPINGS_TEMPLATES: _MAPPER_TEMPLATE_LIST = [
     (
         "Vantage Pro2 or Vantage Vue",
-        ['th:1', 'rain:1', 'wind:1', 'windchill:1', 'thw:1:appTemp', 'th_indoor', "baro", 'battery:1:outTemp:rain:wind']
+        ['th:1', 'rain:1', 'wind:1', 'windchill:1', 'thw:1:appTemp', 'th_indoor', "baro", 'battery:1']
     ),
     (
         "Vantage Pro2 Plus",
         ['th:1', 'rain:1', 'wind:1', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'th_indoor', 'baro',
-         'battery:1:outTemp:rain:wind:uv']
+         'battery:1']
     ),
     (
         "Vantage Pro2 Plus with additional anemometer transmitter",
         ['th:1', 'rain:1', 'wind:2', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'th_indoor', 'baro',
-         'battery:1:outTemp:rain:uv', 'battery:2:wind']
+         'battery:1', 'battery:2']
     ),
     (
         "Vantage Pro2 Plus with soil/leaf station",
         ['th:1', 'rain:1', 'wind:1', 'uv:1', 'solar:1', 'windchill:1', 'thw:1', 'thsw:1:appTemp', 'soil_temp:2:1',
          'soil_temp:2:2', 'soil_temp:2:3', 'soil_temp:2:4', 'soil_moist:2:1', 'soil_moist:2:2', 'soil_moist:2:3',
-         'soil_moist:2:4', 'leaf_wet:2:1', 'leaf_wet:2:2', 'th_indoor', 'baro', 'battery:1:outTemp:rain:wind:uv',
-         'battery:2:tx']
+         'soil_moist:2:4', 'leaf_wet:2:1', 'leaf_wet:2:2', 'th_indoor', 'baro', 'battery:1', 'battery:2']
     ),
 ]
 
@@ -56,34 +69,33 @@ _URL_HELP_MAPPING_CONFIGURATION = "https://github.com/michael-slx/weewx-weatherl
 
 
 def _prompt_host(old_host: Optional[str]) -> str:
-    print("\n")
-    print("Specify the IP address (e.g. 192.168.1.123) or hostname (e.g. weatherlinklive")
-    print("or weatherlinklive.localdomain) of the WeatherLink LIVE.)")
-    print("The device must be reachable via HTTP (TCP port 80) and must be on the same")
-    print("subnet/VLAN. If this is not the case, 2.5-second live updates will not work")
-    print("(sent as broadcast packets on UDP port 22222).")
+    print("""
+Specify the IP address or hostname of the WeatherLink Live.
+
+The device must be reachable via HTTP (TCP port 80) and must be on the same
+subnet/VLAN.
+""")
     return weecfg.prompt_with_options("IP/Hostname", old_host)
 
 
-def _prompt_mappings() -> List[str]:
-    print("\n")
-    print("""WeeWX uses a configurable but fixed database schema to store the recorded data.
-WeatherLink LIVE however allows an arbitrary combination of transmitter types
-and sensors. There is no way to automatically determine the sensors connected.
+def _prompt_mappings(old_mappings: List[str]) -> List[str]:
+    print("""
+Please choose the mapping template you wish to use. This will determine how
+the sensors are mapped to WeeWX values.
 
-Because of this, the mappings from WeatherLink LIVE sensors to WeeWX have to be
-manually configured. The following interactive menu allows you to choose from
-templates. You can customize them manually later.
+Choosing a value here will OVERWRITE the current value! Leave blank to retain
+current value.
 
 For more details on mappings and how to manually edit them, see the online
 documentation:
-%s""" % _URL_HELP_MAPPING_CONFIGURATION)
+%s
+""" % _URL_HELP_MAPPING_CONFIGURATION)
 
     _print_mapping_templates_menu()
     template_no = weecfg.prompt_with_options("Use template (blank for none)", "",
                                              [*[str(i) for i in range(0, len(_MAPPINGS_TEMPLATES))], ""])
     if len(template_no) <= 0:
-        return []
+        return old_mappings
 
     template_idx = int(template_no)
     return _MAPPINGS_TEMPLATES[template_idx][1]
@@ -96,26 +108,16 @@ def _print_mapping_templates_menu():
         print("%3s: %s" % (str(i), title))
 
 
-def _print_mappings_exists() -> None:
-    print("\n")
-    print("""There are already some configured mappings. You can customize them manually
-by editing the WeeWX configuration file.
-
-For more details on mappings and how to manually edit them, see the online
-documentation:
-%s""" % _URL_HELP_MAPPING_CONFIGURATION)
-
-
 def _print_mapping_table_info():
-    print("\n")
-    print("""You can display all mappings by running the following command:
-$ wee_device --print-mapping""")
+    print("""
+You can display all mappings by running the following command:
+
+   $ weectl device --print-mapping""")
 
 
 def _print_schema_info():
-    print("\n")
-    print("""In order to utilize the full potential of your WeatherLink LIVE, you should use
-the database schema included with this driver.
+    print("""
+It is recommended that you use the database schema included with this driver.
 
 See the installation manual for detailed instructions:
 %s""" % _URL_HELP_INSTALLATION)
@@ -127,25 +129,7 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
 
     @property
     def default_stanza(self):
-        return """
-#   This section configures the WeatherLink Live driver
-
-[WeatherLinkLive]
-    # Driver module
-    driver = user.weatherlink_live
-
-    # Host name or IP address of WeatherLink Live
-    host = weatherlinklive
-
-    # Mapping of transmitter ids to WeeWX records
-    mapping = ,
-
-    # Whether to log successful operations. Overrides top-level setting.
-    #log_success = False
-
-    # Whether to log unsuccessful operations. Overrides top-level setting.
-    #log_failure = True
-"""
+        return WLL_CONFIG
 
     def prompt_for_settings(self) -> Dict[str, Any]:
         settings = self.existing_options
@@ -156,21 +140,17 @@ class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
         settings['host'] = host
 
         mapping_def_cfg_list = to_list(settings.get('mapping', []))
-        if len(mapping_def_cfg_list) <= 0:
-            mapping_def_cfg_list = _prompt_mappings()
-            settings['mapping'] = mapping_def_cfg_list
-        else:
-            _print_mappings_exists()
+        mapping_def_cfg_list = _prompt_mappings(mapping_def_cfg_list)
+        settings['mapping'] = mapping_def_cfg_list
 
         _print_mapping_table_info()
-
         _print_schema_info()
 
         return settings
 
     def modify_config(self, config_dict):
         print("\n")
-        print("""Configuring accumulators for custom types.""")
+        print("Configuring accumulators for custom types.")
 
         config_dict.setdefault('Accumulator', {})
 

@@ -1,21 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
-SOURCE_FILES=(
-    "weatherlink_live_driver.py"
-    "weatherlink_live"
-)
-
 SOURCE_DIR="/vagrant/bin/user"
+SOURCE_FILES=("weatherlink_live" "weatherlink_live_driver.py")
 
-declare use_sudo=0
+declare sudo_cmd
 declare target_dir
-
-if [[ -d "/usr/lib/weewx/user" ]]; then
-    use_sudo=1
-    target_dir="/usr/lib/weewx/user"
+if [[ -d "/usr/lib/weewx/bin/user" ]]; then
+    sudo_cmd="sudo"
+    target_dir="/usr/lib/weewx/bin/user"
 elif [[ -d "$HOME/weewx-data/bin/user" ]]; then
-    use_sudo=0
+    sudo_cmd=""
     target_dir="$HOME/weewx-data/bin/user"
 else
     echo "Could not determine target directory"
@@ -23,19 +18,19 @@ else
     exit 2
 fi
 
-echo "Target directory: $target_dir"
-
 for file in "${SOURCE_FILES[@]}"; do
     source_path="${SOURCE_DIR}/${file}"
-    target_path="${TARGET_DIR}/${file}"
+    target_path="${target_dir}/${file}"
+    echo "$source_path -> $target_path"
 
     if [[ -e "$target_path" ]]; then
-        rm -fR "$target_path"
+        $sudo_cmd rm -fR "$target_path"
     fi
 
-    if [[ $use_sudo -eq 1 ]]; then
-        sudo cp -R "$source_path" "$target_dir"
+    if [[ -d "$source_path" ]]; then
+        $sudo_cmd mkdir -p "$target_path"
+        $sudo_cmd cp -R "$source_path"/* "$target_path"
     else
-        cp -R "$source_path" "$target_dir"
+        $sudo_cmd cp -R "$source_path" "$target_path"
     fi
 done

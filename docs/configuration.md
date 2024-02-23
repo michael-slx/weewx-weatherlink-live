@@ -48,7 +48,7 @@ This document is a reference for all available configuration options.
     driver = user.weatherlink_live_driver
 
     # Host name or IP address of WeatherLink Live
-    host = weatherlinklive.localdomain
+    host = weatherlinklive
 
     # Mapping of transmitter ids to WeeWX records
     mapping = th:1, rain:1, wind:1, windchill:1, solar:1, uv:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1:outTemp:rain:wind
@@ -101,7 +101,7 @@ The interval in seconds to wait between retrieving a full data update from the W
 
 Count of iterations without any data to tolerate before raising an error.
 
-The driver checks for the availability of new data at least every 5 secons. If no data is available for the specified number of iterations, an error is raised.
+The driver checks for the availability of new data at least every 5 seconds. If no data is available for the specified number of iterations, an error is raised.
 
 ### `log_success`
 
@@ -310,7 +310,7 @@ The second option specifies the port to which the sensor is connected (1 or 2).
 
 Maps battery status value (`0` or `1`).
 
-Optionally, further mapping options can be specified. These will lead to the status being mapped to additional metrics provided by WeeWX. This is useful for displaying the battery status in the default WeeWX skin.
+Optionally, further mapping options can be specified. These will lead to the status being mapped to additional metrics provided by WeeWX.
 
 #### Indoor temperature/humidity
 
@@ -335,7 +335,7 @@ Maps sea-level and absolute barometric pressure.
 If you wish to **inspect the configured mappings**, you can run the following command to display a table of assignments from sensors to WeeWX metrics.
 
 ```sh
-> wee_device --print-mapping
+> weectl device --print-mapping
 ```
 
 ### Example mappings
@@ -347,7 +347,7 @@ _Note:_ These examples correspond to the templates provided by the interactive s
 This example is a valid mapping for a factory-default Vantage2 Pro. All sensors are connected to the main ISS transmitter set to id 1.
 
 ```ini
-mapping = th:1, rain:1, wind:1, windchill:1, thw:1:appTemp, battery:1:outTemp:rain:wind, th_indoor, baro
+mapping = th:1, rain:1, wind:1, windchill:1, thw:1:appTemp, battery:1, th_indoor, baro
 ```
 
 #### Vantage Pro2 Plus
@@ -355,7 +355,7 @@ mapping = th:1, rain:1, wind:1, windchill:1, thw:1:appTemp, battery:1:outTemp:ra
 This example is a valid mapping for a factory-default Vantage2 Pro Plus. All sensors are connected to the main ISS transmitter set to id 1.
 
 ```ini
-mapping = th:1, rain:1, wind:1, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1:outTemp:rain:wind:uv
+mapping = th:1, rain:1, wind:1, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1
 ```
 
 #### Vantage Pro2 Plus with additional anemometer transmitter
@@ -365,7 +365,7 @@ Same as above, except the wind sensor is connected to a separate transmitter wit
 Note that there is a configuration option on WeatherLink.com to import the wind measurement into the measurements of the main transmitter. If you enable this, the wind chill, THW and THSW values will still be calculated. Otherwise they should be removed from the mapping.
 
 ```ini
-mapping = th:1, rain:1, wind:2, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1:outTemp:rain:uv, battery:2:wind
+mapping = th:1, rain:1, wind:2, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1, battery:2
 ```
 
 #### Vantage Pro2 Plus with soil/leaf station
@@ -373,5 +373,5 @@ mapping = th:1, rain:1, wind:2, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTem
 Same as the second example with an additional (fully equipped) soil/leaf station. The agriculture station has the transmitter id 2.
 
 ```ini
-mapping = th:1, rain:1, wind:1, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, soil_temp:2:1, soil_temp:2:2, soil_temp:2:3, soil_temp:2:4, soil_moist:2:1, soil_moist:2:2, soil_moist:2:3, soil_moist:2:4, leaf_wet:2:1, leaf_wet:2:2, th_indoor, baro, battery:1:outTemp:wind:uv, battery:2:tx
+mapping = th:1, rain:1, wind:1, uv:1, solar:1, windchill:1, thw:1, thsw:1:appTemp, soil_temp:2:1, soil_temp:2:2, soil_temp:2:3, soil_temp:2:4, soil_moist:2:1, soil_moist:2:2, soil_moist:2:3, soil_moist:2:4, leaf_wet:2:1, leaf_wet:2:2, th_indoor, baro, battery:1, battery:2
 ```

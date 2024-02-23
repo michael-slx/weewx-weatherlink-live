@@ -182,3 +182,22 @@ Driver is now compatible with **Python 3.7 or later**.
 ## Version 1.1.2
 
 - **Fix installation issue** on WeeWX 5 beta
+
+## Version 1.1.3
+
+- **Update documentation for WeeWX 5**
+
+- **Add an [Upgrade guide](docs/upgrading.md)**
+
+- **Deprecate driver alias module**
+
+  The driver alias module `user.weatherlink_live_driver` is no longer necessary in WeeWX 5 and will be removed in a future release. See [Upgrade guide](docs/upgrading.md) for more information.
+
+- **Simplify the configuration prompts**
+
+  Some of text was removed to make the process less intimidating ... Also the mapping template prompt now always appears.
+
+- **The extension installer will now add an example config.**
+
+  The snippet contains sensible defaults for a WeatherLink Live with a standard Vantage Pro II Plus.
+
