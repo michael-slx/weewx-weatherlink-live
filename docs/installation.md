@@ -32,7 +32,7 @@ If you haven't done so already, install the following packages:
 1. Install the extension by running the following command, possibly using `sudo`.
 
 ```sh
-> weectl extension install https://github.com/michael-slx/weewx-weatherlink-live/releases/download/v1.1.2/weewx-weatherlink-live-v1.1.2.tar.xz
+> weectl extension install https://github.com/michael-slx/weewx-weatherlink-live/releases/download/v1.1.3/weewx-weatherlink-live-v1.1.3.tar.xz
 ```
 
 Answer `y` (Yes), when asked if you want to install the extension.
