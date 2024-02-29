@@ -23,7 +23,7 @@ import threading
 
 from user.weatherlink_live import data_host, scheduler
 from user.weatherlink_live.configuration import create_configuration
-from user.weatherlink_live.service import WllWindGustService
+from user.weatherlink_live.service import WllService
 from user.weatherlink_live.static.version import DRIVER_NAME, DRIVER_VERSION
 from weewx import WeeWxIOError
 from weewx.drivers import AbstractDevice
@@ -47,20 +47,45 @@ class WeatherlinkLiveDriver(AbstractDevice):
         log.debug("Configuration: %s" % (repr(self.configuration)))
 
         self.mappers = self.configuration.create_mappers()
-        self.wind_service = WllWindGustService(engine, conf_dict, self.mappers, self.configuration.log_success,
-                                               self.configuration.log_error)
+        self.service = WllService(engine, conf_dict, self.mappers, self.configuration.log_success,
+                                  self.configuration.log_error)
 
         self.is_running = False
         self.scheduler = None
         self.no_data_count = 0
         self.data_event = None
         self.poll_host = None
+        self.wlcom_host = None
         self.push_host = None
+        self.archive_interval_ = 1 # In minutes. It can be 1, 5, 10, 15, 30, 60 or 120
 
     @property
     def hardware_name(self):
         """Name of driver"""
         return DRIVER_NAME
+
+    @property
+    def archive_interval(self):
+        return self.archive_interval_ * 60
+
+    def genArchiveRecords(self, since_ts):
+        if not self.is_running:
+            try:
+                self.start()
+            except Exception as e:
+                raise InitializationError("Error while starting driver: %s" % str(e)) from e
+
+        if self.wlcom_host:
+            while self.wlcom_host.packets:
+                if since_ts and self.wlcom_host.packets[0]['dateTime'] <= since_ts:
+                    # Ack unwanted archive packet
+                    self.wlcom_host._receiver.ack_packet(self.wlcom_host.packets.popleft()['dateTime'], False)
+                    continue
+
+                self._log_success("Emitting wlcom packet")
+                self._reset_data_count()
+                self.wlcom_host.packets[0]['interval'] = self.archive_interval_
+                yield self.wlcom_host.packets.popleft()
 
     def genLoopPackets(self):
         """Open connection and generate loop packets"""
@@ -83,6 +108,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
             try:
                 self.scheduler.raise_error()
                 self.poll_host.raise_error()
+                if self.configuration.use_wlcom:
+                    self.wlcom_host.raise_error()
                 self.push_host.raise_error()
             except Exception as e:
                 raise WeeWxIOError("Error while receiving or processing packets: %s" % repr(e)) from e
@@ -133,6 +160,15 @@ class WeatherlinkLiveDriver(AbstractDevice):
             self.push_host.refresh_broadcast,
             self.data_event
         )
+        if self.configuration.use_wlcom:
+            self.wlcom_host = data_host.WLLWlcomHost(
+                self.archive_interval_,
+                self.service,
+                self.mappers,
+                self.poll_host.txid,
+                self.data_event,
+                self.configuration.socket_timeout
+            )
 
     @property
     def archive_interval(self):
@@ -155,6 +191,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
             self.scheduler.cancel()
         if self.poll_host is not None:
             self.poll_host.close()
+        if self.wlcom_host is not None:
+            self.wlcom_host.close()
         if self.push_host is not None:
             self.push_host.close()
 

@@ -145,3 +145,10 @@ BATTERY_STATUS_NAMED = {'outTemp': 'outTempBatteryStatus',
                         'tx': 'txBatteryStatus',
                         'uv': 'uvBatteryStatus',
                         'wind': 'windBatteryStatus'}
+
+VOLTAGE_NAMED = {'trans_battery': 'supplyVoltage',
+                 'solar_volt_last': 'heatingVoltage',
+                 'supercap_volt_last': 'referenceVoltage'}
+
+VOLTAGE_WLL_BATT = ['consBatteryVoltage']
+VOLTAGE_WLL_SUPPLY = ['consSupplyVoltage' ]

@@ -30,7 +30,8 @@ from user.weatherlink_live.static.packets import DataStructureType, KEY_TEMPERAT
     KEY_HEAT_INDEX, KEY_WET_BULB, KEY_WIND_DIR, KEY_RAIN_AMOUNT_DAILY, KEY_RAIN_SIZE, KEY_RAIN_RATE, \
     KEY_SOLAR_RADIATION, KEY_UV_INDEX, KEY_WIND_CHILL, KEY_THW_INDEX, KEY_THSW_INDEX, KEY_SOIL_MOISTURE, \
     KEY_TEMPERATURE_LEAF_SOIL, KEY_LEAF_WETNESS, KEY_TEMPERATURE_INDOOR, KEY_HUMIDITY_INDOOR, KEY_DEW_POINT_INDOOR, \
-    KEY_HEAT_INDEX_INDOOR, KEY_BARO_ABSOLUTE, KEY_BARO_SEA_LEVEL, KEY_WIND_SPEED, KEY_BATTERY_FLAG
+    KEY_HEAT_INDEX_INDOOR, KEY_BARO_ABSOLUTE, KEY_BARO_SEA_LEVEL, KEY_WIND_SPEED, KEY_BATTERY_FLAG, \
+    KEY_WLL_BATTERY, KEY_WLL_SUPPLY, KEY_GUST_SPEED, KEY_GUST_DIR, KEY_RAIN_AMOUNT
 
 log = logging.getLogger(__name__)
 
@@ -233,7 +234,7 @@ class WindMapping(AbstractMapping):
         }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
-        if packet.data_source != PacketSource.WEATHER_PUSH:
+        if packet.data_source not in [ PacketSource.WEATHER_PUSH, PacketSource.WEATHER_WLCOM ]: 
             self._log_mapping_notResponsible("Not a broadcast packet")
             return
 
@@ -244,6 +245,15 @@ class WindMapping(AbstractMapping):
                                packet.get_observation(KEY_WIND_DIR, DataStructureType.ISS, self.tx_id))
         self._set_record_entry(record, target_speed,
                                packet.get_observation(KEY_WIND_SPEED, DataStructureType.ISS, self.tx_id))
+
+        if packet.data_source == PacketSource.WEATHER_WLCOM:
+            target_gust_dir = self.targets['gust_dir']
+            target_gust_speed = self.targets['gust_speed']
+
+            self._set_record_entry(record, target_gust_dir,
+                                   packet.get_observation(KEY_GUST_DIR, DataStructureType.ISS, self.tx_id))
+            self._set_record_entry(record, target_gust_speed,
+                                   packet.get_observation(KEY_GUST_SPEED, DataStructureType.ISS, self.tx_id))
 
     @property
     def map_source_transmitter(self) -> str:
@@ -286,8 +296,8 @@ class RainMapping(AbstractMapping):
         }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
-        if packet.data_source != PacketSource.WEATHER_PUSH:
-            self._log_mapping_notResponsible("Not a broadcast packet")
+        if packet.data_source not in [ PacketSource.WEATHER_PUSH, PacketSource.WEATHER_WLCOM ]:
+            self._log_mapping_notResponsible("Not a broadcast or archive packet")
             return
 
         target_amount = self.targets['amount']
@@ -299,6 +309,12 @@ class RainMapping(AbstractMapping):
         rain_bucket_factor = self.rain_bucket_factor(packet)
         self._set_record_entry(record, target_size, rain_bucket_factor)
 
+        if packet.data_source == PacketSource.WEATHER_WLCOM:
+            rain_count = packet.get_observation(KEY_RAIN_AMOUNT, DataStructureType.ISS, self.tx_id)
+            self._set_record_entry(record, target_count, rain_count)
+            self._set_record_entry(record, target_amount, self._multiply(rain_count, rain_bucket_factor))
+            return
+            
         rain_rate_count = packet.get_observation(KEY_RAIN_RATE, DataStructureType.ISS, self.tx_id)
         self._set_record_entry(record, target_rate_count, rain_rate_count)
         self._set_record_entry(record, target_rate, self._multiply(rain_rate_count, rain_bucket_factor))
@@ -724,6 +740,108 @@ class BatteryStatusMapping(AbstractMapping):
 
     @property
     def map_table(self) -> Dict[str, list[str]]:
+            labels.LABEL_BATTERY_STATUS: [self.targets['battery'], *self.further_targets]
+
+
+class VoltageMapping(AbstractMapping):
+    def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
+
+        self.tx_id = self._parse_option_int(mapping_opts, 0)
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
         return {
-            labels.LABEL_BATTERY_STATUS: [self.targets['battery'], *self.further_targets],
+            'voltage': list(targets.VOLTAGE_NAMED.values()),
+            'batt': targets.VOLTAGE_WLL_BATT,
+            'supply': targets.VOLTAGE_WLL_SUPPLY
+        }
+
+    def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
+        for obs, target in targets.VOLTAGE_NAMED.items():
+            self._set_record_entry(record, target, packet.get_observation(obs, tx=self.tx_id))
+
+        for conditions in packet._conditions:
+            if conditions.get('data_structure_type') == DataStructureType.WLL_HEALTH:
+                target_b = self.targets['batt']
+                target_s = self.targets['supply']
+
+                self._set_record_entry(record, target_b,
+                                       packet.get_observation(KEY_WLL_BATTERY, DataStructureType.WLL_HEALTH))
+                self._set_record_entry(record, target_s,
+                                       packet.get_observation(KEY_WLL_SUPPLY, DataStructureType.WLL_HEALTH))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
+    @property
+    def map_table(self) -> Dict[str, list[str]]:
+        return {
+            labels.LABEL_VOLTAGE: self.targets['voltage'],
+            labels.LABEL_WLL_BATTERY: self.targets['batt'],
+            labels.LABEL_WLL_SUPPLY: self.targets['supply'],
+        }
+
+
+class CommMapping(AbstractMapping):
+
+    def __init__(self, mapping_opts: list, used_map_targets: list, log_success: bool = False, log_error: bool = True):
+        super().__init__(mapping_opts, used_map_targets, log_success, log_error)
+
+        self.tx_id = self._parse_option_int(mapping_opts, 0)
+        self.wll_dict = {
+            'uptime': 'uptime',
+            'rx_bytes': 'rxBytes',
+            'tx_bytes': 'txBytes',
+            'local_api_queries': 'localApiQueries',
+            'rapid_records_sent': 'rapidRecordsSent',
+            'wifi_rssi': 'wifiRssi',
+            'link_uptime': 'linkUptime',
+            'network_error': 'networkError',
+            'touchpad_wakeups': 'touchpadWakeups',
+        }
+        self.iss_dict = {
+            'reception': 'reception',
+            'rssi': 'rssi',
+            'error_packets': 'errorPackets',
+            'resynchs': 'resyncs',
+            'good_packets_streak': 'goodPacketsStreaks'
+        }
+
+    @property
+    def _map_target_dict(self) -> Dict[str, List[str]]:
+        return { }
+
+    def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
+        for obs, target in self.iss_dict.items():
+            self._set_record_entry(record, target, packet.get_observation(obs, tx=self.tx_id))
+
+        for conditions in packet._conditions:
+            if conditions.get('data_structure_type') == DataStructureType.WLL_HEALTH:
+                for obs, target in self.wll_dict.items():
+                    self._set_record_entry(record, target,
+                                       packet.get_observation(obs, DataStructureType.WLL_HEALTH))
+
+    @property
+    def map_source_transmitter(self) -> str:
+        return labels.LABEL_SOURCE_TX_ID % self.tx_id
+
+    @property
+    def map_table(self) -> Dict[str, list[str]]:
+        return {
+            labels.LABEL_WLL_UPTIME: self.targets['uptime'],
+            labels.LABEL_WLL_RX_BYTES: self.targets['rx_bytes'],
+            labels.LABEL_WLL_TX_BYTES: self.targets['tx_bytes'],
+            labels.LABEL_WLL_LOCAL_API: self.targets['local_api_queries'],
+            labels.LABEL_WLL_RAPID_RECORDS: self.targets['rapid_records_sent'],
+            labels.LABEL_WLL_WIFI_RSSI: self.targets['wifi_rssi'],
+            labels.LABEL_WLL_LINK_UPTIME: self.targets['link_uptime'],
+            labels.LABEL_WLL_NET_ERROR: self.targets['network_error'],
+            labels.LABEL_WLL_TOUCHPAD: self.targets['touchpad_wakeups'],
+            labels.LABEL_WLL_RECEPTION: self.targets['reception'],
+            labels.LABEL_WLL_RSSI: self.targets['rssi'],
+            labels.LABEL_WLL_ERROR_PACKETS: self.targets['error_packets'],
+            labels.LABEL_WLL_RESYNCHS: self.targets['resynchs'],
+            labels.LABEL_WLL_GOOD_STREAK: self.targets['good_packets_streak']
         }

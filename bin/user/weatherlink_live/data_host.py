@@ -27,8 +27,10 @@ import weewx
 from user.weatherlink_live.callback import PacketCallback
 from user.weatherlink_live.davis_broadcast import WllBroadcastReceiver
 from user.weatherlink_live.davis_http import start_broadcast, request_current
+from user.weatherlink_live.davis_wlcom import WllWlcomReceiver
 from user.weatherlink_live.mappers import AbstractMapping
 from user.weatherlink_live.packets import DavisConditionsPacket
+from user.weatherlink_live.service import WllService
 
 log = logging.getLogger(__name__)
 
@@ -79,10 +81,15 @@ class WllPollHost(DataHost):
         super().__init__(mappers, data_event)
         self.host = host
         self.http_timeout = http_timeout
+        self.txid = dict()
 
     def poll(self):
         packet = request_current(self.host, timeout=self.http_timeout)
         log.debug("Polled current conditions")
+
+        for ls in packet._conditions:
+            if 'txid' in ls:
+                self.txid[ls['lsid']] = ls['txid']
 
         self._create_record(packet)
 
@@ -140,3 +147,51 @@ class WLLBroadcastHost(DataHost, PacketCallback):
 
     def close(self):
         self._stop_broadcast_reception()
+
+
+class WLLWlcomHost(DataHost, PacketCallback):
+    """Class for capturing wl.com traffic"""
+
+    def __init__(self,
+                 archive_interval: int,
+                 service: WllService, 
+                 mappers: List[AbstractMapping],
+                 txid: dict,
+                 data_event: threading.Event,
+                 http_timeout: float = 20):
+        super().__init__(mappers, data_event)
+        self.archive_interval = archive_interval
+        self.http_timeout = http_timeout
+        self.txid = txid
+
+        self._port = 5621
+        self._receiver = WllWlcomReceiver(archive_interval, service, self._port, self)
+
+    def _stop_wlcom_reception(self):
+        if self._receiver is None:
+            return
+        self._receiver.close()
+
+    def on_packet_received(self, packet: DavisConditionsPacket):
+        log.debug("Received new wlcom packet")
+        try:
+            record = dict()
+
+            for mapper in self._mappers:
+                mapper.map(packet, record)
+
+            record['dateTime'] = packet.timestamp
+            record['usUnits'] = weewx.US
+
+            self.packets.append(record)
+            # Don't signal the Loop generator here
+        except Exception as e:
+            self.notify_error(e)
+            self.close()
+
+    def on_packet_receive_error(self, e: BaseException):
+        self.notify_error(e)
+        self.close()
+
+    def close(self):
+        self._stop_wlcom_reception()

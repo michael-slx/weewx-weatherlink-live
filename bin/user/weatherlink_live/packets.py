@@ -253,3 +253,36 @@ class WlUdpBroadcastPacket(DavisConditionsPacket):
     @property
     def data_source(self) -> PacketSource:
         return PacketSource.WEATHER_PUSH
+
+
+class WlWlcomPacket(DavisConditionsPacket):
+    """Packet as sent from Wlcom"""
+
+    def __init__(self, packet: dict, host: str):
+        super().__init__(packet, host)
+        self.raise_error()
+
+        # Do we need this for anything?
+        #self.device_id = f"001D0A{attr['did']:06X}"
+        self._timestamp = packet['ts']
+        self.conditions = packet['conditions']
+
+    @staticmethod
+    def try_create(packet: dict, host: str):
+        log.debug("Trying to create Wl.com packet")
+        try:
+            return WlWlcomPacket(packet, host)
+        except (ValueError, KeyError) as e:
+            raise weewx.WeeWxIOError("Could not extract main entries of packet") from e
+
+    @property
+    def timestamp(self) -> int:
+        return self._timestamp
+
+    @property
+    def _conditions(self) -> dict:
+        return self.conditions
+
+    @property
+    def data_source(self) -> PacketSource:
+        return PacketSource.WEATHER_WLCOM

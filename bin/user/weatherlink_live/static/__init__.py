@@ -24,3 +24,4 @@ from enum import Enum
 class PacketSource(Enum):
     WEATHER_POLL = 10
     WEATHER_PUSH = 20
+    WEATHER_WLCOM = 30
