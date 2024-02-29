@@ -34,15 +34,6 @@ def loader():
 
 
 WLL_CONFIG = """
-[Station]
-    # This section is for information about the station.
-
-    # Set to type of station hardware. There must be a corresponding stanza
-    # in this file, which includes a value for the 'driver' option.
-    station_type = WeatherLinkLive
-
-##############################################################################
-
 [WeatherLinkLive]
     # This section configures the WeatherLink Live driver.
 
