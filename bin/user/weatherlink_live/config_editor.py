@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Any, Dict, Tuple, List, Optional
+from typing import Any, Dict, Tuple, List, Optional, Union
 
 import weecfg
 import weewx.drivers
@@ -124,6 +124,8 @@ See the installation manual for detailed instructions:
 
 
 class WeatherlinkLiveConfEditor(weewx.drivers.AbstractConfEditor):
+    existing_options: Dict[str, Optional[Union[str, List[str]]]]
+
     def __init__(self):
         self.existing_options = dict()
 
