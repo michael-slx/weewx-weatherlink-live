@@ -201,3 +201,15 @@ Driver is now compatible with **Python 3.7 or later**.
 
   The snippet contains sensible defaults for a WeatherLink Live with a standard Vantage Pro II Plus.
 
+## Version 1.1.4
+
+- **Remove `[Station]` section from installer example config** ([PR #39](https://github.com/michael-slx/weewx-weatherlink-live/pull/39))
+
+  Specifying this section in the example config caused it to be removed when the extension was uninstalled, breaking the whole configuration file.
+
+  Thanks to user [tkeffer](https://github.com/tkeffer) for submitting the pull request.
+
+- **Fix type-hinting issue and compatibility problems**
+
+  WeeWX supports Python 3.7 but some type-hinting used by this driver required at least Python 3.9. This was fixed so that the driver now works with Python 3.7.
+
