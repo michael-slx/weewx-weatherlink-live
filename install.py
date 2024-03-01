@@ -34,15 +34,6 @@ def loader():
 
 
 WLL_CONFIG = """
-[Station]
-    # This section is for information about the station.
-
-    # Set to type of station hardware. There must be a corresponding stanza
-    # in this file, which includes a value for the 'driver' option.
-    station_type = WeatherLinkLive
-
-##############################################################################
-
 [WeatherLinkLive]
     # This section configures the WeatherLink Live driver.
 
@@ -77,7 +68,7 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
     def __init__(self):
         super(WeatherLinkLiveInstaller, self).__init__(
             name='weatherlink-live',
-            version="1.1.3",
+            version="1.1.4",
             description='WeeWX driver for Davis WeatherLink Live.',
             author="Michael Schantl",
             author_email="floss@schantl-lx.at",
