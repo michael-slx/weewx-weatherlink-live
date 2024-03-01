@@ -68,7 +68,7 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
     def __init__(self):
         super(WeatherLinkLiveInstaller, self).__init__(
             name='weatherlink-live',
-            version="1.1.3",
+            version="1.1.4",
             description='WeeWX driver for Davis WeatherLink Live.',
             author="Michael Schantl",
             author_email="floss@schantl-lx.at",

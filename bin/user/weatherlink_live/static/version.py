@@ -20,4 +20,4 @@
 
 
 DRIVER_NAME = "WeatherLinkLive"
-DRIVER_VERSION = "1.1.3"
+DRIVER_VERSION = "1.1.4"
