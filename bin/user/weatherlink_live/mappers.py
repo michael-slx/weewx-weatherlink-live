@@ -134,7 +134,7 @@ class AbstractMapping(object):
         raise NotImplementedError()
 
     @property
-    def map_table(self) -> Dict[str, Union[str, list[str]]]:
+    def map_table(self) -> Dict[str, Union[str, List[str]]]:
         raise NotImplementedError()
 
 
@@ -476,7 +476,7 @@ class ThwMapping(AbstractMapping):
         return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
-    def map_table(self) -> Dict[str, list[str]]:
+    def map_table(self) -> Dict[str, List[str]]:
         return {
             labels.LABEL_THW_INDEX: [self.targets['thw'], self.targets['app_temp']] if self.is_app_temp else [
                 self.targets['thw']],
@@ -517,7 +517,7 @@ class ThswMapping(AbstractMapping):
         return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
-    def map_table(self) -> Dict[str, list[str]]:
+    def map_table(self) -> Dict[str, List[str]]:
         return {
             labels.LABEL_THSW_INDEX: [self.targets['thsw'], self.targets['app_temp']] if self.is_app_temp else [
                 self.targets['thsw']],
@@ -723,7 +723,7 @@ class BatteryStatusMapping(AbstractMapping):
         return labels.LABEL_SOURCE_TX_ID % self.tx_id
 
     @property
-    def map_table(self) -> Dict[str, list[str]]:
+    def map_table(self) -> Dict[str, List[str]]:
         return {
             labels.LABEL_BATTERY_STATUS: [self.targets['battery'], *self.further_targets],
         }
