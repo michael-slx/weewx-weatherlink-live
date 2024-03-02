@@ -1,5 +1,5 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "michael-slx/arch64-develop"
+  config.vm.box = "michael-slx/arch-develop"
 
   config.vm.hostname = "vm-weewx-wll-test"
   config.vm.network "public_network"
