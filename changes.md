@@ -213,3 +213,27 @@ Driver is now compatible with **Python 3.7 or later**.
 
   WeeWX supports Python 3.7 but some type-hinting used by this driver required at least Python 3.9. This was fixed so that the driver now works with Python 3.7.
 
+## Version 1.1.5
+
+- **Fix resource leaks and cleanup issues** ([#42](https://github.com/michael-slx/weewx-weatherlink-live/issues/42))
+
+  WeeWX does not close and re-instantiate the driver module when an error
+  occurs. This previously led to issues when attempting to re-open the UDP socket.
+
+  Additionally, there was a crash when cancelling scheduler tasks.
+
+- **Make retry log messages more intuitive** ([#47](https://github.com/michael-slx/weewx-weatherlink-live/issues/47))
+
+  Previously, retries of HTTP requests were counted starting at `0`. This 
+  was changed to start at `1` (= first retry = second attempt).
+
+- **Add log messages for successful request retries** ([#46](https://github.com/michael-slx/weewx-weatherlink-live/issues/46))
+
+  When a HTTP request succeeds, a respective message is logged.
+  If it took more than one attempt, a message is logged with
+  the `error` level.
+
+- **Set `max` accumulator for `rainRate` metric** ([#44](https://github.com/michael-slx/weewx-weatherlink-live/issues/44))
+
+  Rain rate is accumulated by using maximum value for consistency
+  with WeatherLink app/dashboard.
