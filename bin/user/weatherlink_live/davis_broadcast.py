@@ -64,6 +64,8 @@ class WllBroadcastReceiver(object):
                     continue
 
                 data, source_addr = self.sock.recvfrom(2048)
+                if self.broadcasting_wl_host != source_addr[0]:
+                    continue
                 log.debug("Received %d bytes from %s" % (len(data), source_addr))
                 try:
                     json_data = json.loads(data.decode("utf-8"))
