@@ -1,4 +1,4 @@
-# Copyright © 2020-2024 Michael Schantl and contributors
+# Copyright © 2020-2025 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,8 @@ class WllBroadcastReceiver(object):
                     continue
 
                 data, source_addr = self.sock.recvfrom(2048)
+                if self.broadcasting_wl_host != source_addr[0]:
+                    continue
                 log.debug("Received %d bytes from %s" % (len(data), source_addr))
                 try:
                     json_data = json.loads(data.decode("utf-8"))

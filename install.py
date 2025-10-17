@@ -1,4 +1,4 @@
-# Copyright © 2020-2024 Michael Schantl and contributors
+# Copyright © 2020-2025 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -74,7 +74,7 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
     def __init__(self):
         super(WeatherLinkLiveInstaller, self).__init__(
             name='weatherlink-live',
-            version="1.1.5",
+            version="1.1.6",
             description='WeeWX driver for Davis WeatherLink Live.',
             author="Michael Schantl",
             author_email="floss@schantl-lx.at",

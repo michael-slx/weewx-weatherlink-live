@@ -237,3 +237,12 @@ Driver is now compatible with **Python 3.7 or later**.
 
   Rain rate is accumulated by using maximum value for consistency
   with WeatherLink app/dashboard.
+
+
+## Version 1.1.6
+
+- **Fix changed module import for database schema** ([#53](https://github.com/michael-slx/weewx-weatherlink-live/issues/53))
+
+  Database schemas were moved to a different module in WeeWX 5.2.0
+
+- **Fix usage of deprecated `utcfromtimestamp()` method**

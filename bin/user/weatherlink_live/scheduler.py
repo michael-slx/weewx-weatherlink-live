@@ -1,4 +1,4 @@
-# Copyright © 2020-2024 Michael Schantl and contributors
+# Copyright © 2020-2025 Michael Schantl and contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@ import logging
 import sched
 import threading
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from math import floor
 from typing import Optional, Callable
 
@@ -37,7 +37,7 @@ log = logging.getLogger(__name__)
 def _format_iso(ts: Optional[float]) -> Optional[str]:
     if ts is None:
         return None
-    return datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S Z')
+    return datetime.fromtimestamp(ts, UTC).strftime('%Y-%m-%d %H:%M:%S Z')
 
 
 class Scheduler(object):
