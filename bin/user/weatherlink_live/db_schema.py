@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 import weewx.units
-from schemas import wview_extended
+from weewx.schemas import wview_extended
 
 _temperature_fields = ["dewpoint2",
                        "dewpoint3",
