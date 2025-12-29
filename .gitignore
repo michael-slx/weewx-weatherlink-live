@@ -3,13 +3,15 @@
 # Python cache
 __pycache__
 
-# IDE: Eclipse
+# Virtual env
+.venv
+
+# IDEs
 .project
 .pydevproject
 .settings
-
-# IDE: IDEA
 .idea
+.vscode
 
-# Tool: Vagrant
+# Vagrant
 .vagrant
