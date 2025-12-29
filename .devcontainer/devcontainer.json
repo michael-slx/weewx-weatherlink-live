@@ -1,0 +1,14 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/python:3.13-trixie",
+  "features": {
+    "ghcr.io/jsburckhardt/devcontainer-features/uv:1": {}
+  },
+  "runArgs": [
+    "--network",
+    "host"
+  ],
+  "postStartCommand": "chmod +x ${containerWorkspaceFolder}/.devcontainer/bin/*",
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:${containerWorkspaceFolder}/.venv/bin:${containerWorkspaceFolder}/.devcontainer/bin"
+  }
+}
