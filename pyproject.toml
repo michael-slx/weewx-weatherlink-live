@@ -1,0 +1,8 @@
+[project]
+name = "weewx-weatherlinklive-driver"
+version = "0.1.0"
+requires-python = ">=3.7"
+dependencies = [
+    "requests>=2.31.0",
+    "weewx>=5.2.0",
+]
