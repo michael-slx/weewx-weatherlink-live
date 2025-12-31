@@ -104,8 +104,14 @@ class WLLBroadcastHost(DataHost, PacketCallback):
 
         self._receiver = None
         self._port = 22222
+        self._device_id = None
 
     def refresh_broadcast(self, request_duration: float):
+        log.debug("Requesting current conditions for device ID")
+        packet_current_conditions = request_current(self.host, timeout=self.http_timeout)
+        self._device_id = packet_current_conditions.device_id
+        log.debug("Device ID is %s" % self._device_id)
+
         log.debug("Re-requesting UDP broadcast")
         packet = start_broadcast(self.host, request_duration, timeout=self.http_timeout)
         port = packet.broadcast_port
@@ -119,7 +125,7 @@ class WLLBroadcastHost(DataHost, PacketCallback):
         self._start_broadcast_reception()
 
     def _start_broadcast_reception(self):
-        self._receiver = WllBroadcastReceiver(self.host, self._port, self)
+        self._receiver = WllBroadcastReceiver(self.host, self._port, self._device_id, self)
 
     def _stop_broadcast_reception(self):
         if self._receiver is None:

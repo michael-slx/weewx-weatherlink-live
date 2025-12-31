@@ -36,9 +36,17 @@ log = logging.getLogger(__name__)
 class WllBroadcastReceiver(object):
     """Receive UDP broadcasts from WeatherLink Live"""
 
-    def __init__(self, broadcasting_wl_host: str, port: int, callback: PacketCallback):
+    def __init__(self, broadcasting_wl_host: str, port: int, device_id: str, callback: PacketCallback):
+        """
+        :param broadcasting_wl_host: IP address/hostname of the WeatherLink Live device broadcasting
+        :param port: Port number to listen on for UDP broadcasts
+        :param device_id: Device ID to filter broadcasts for
+        :param callback: Callback function to handle received packets
+        """
+
         self.broadcasting_wl_host = broadcasting_wl_host
         self.port = port
+        self.device_id = device_id
         self.callback = callback
 
         self.wait_timeout = 5
@@ -64,15 +72,18 @@ class WllBroadcastReceiver(object):
                     continue
 
                 data, source_addr = self.sock.recvfrom(2048)
-                if self.broadcasting_wl_host != source_addr[0]:
-                    continue
                 log.debug("Received %d bytes from %s" % (len(data), source_addr))
+
                 try:
                     json_data = json.loads(data.decode("utf-8"))
                 except JSONDecodeError as e:
                     raise WeeWxIOError("Error decoding broadcast packet JSON") from e
 
                 packet = WlUdpBroadcastPacket.try_create(json_data, self.broadcasting_wl_host)
+                if packet.device_id != self.device_id:
+                    log.debug("Received packet for device %s, but expected %s" % (packet.device_id, self.device_id))
+                    continue
+
                 self.callback.on_packet_received(packet)
 
         except Exception as e:
