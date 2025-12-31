@@ -246,3 +246,9 @@ Driver is now compatible with **Python 3.7 or later**.
   Database schemas were moved to a different module in WeeWX 5.2.0
 
 - **Fix usage of deprecated `utcfromtimestamp()` method**
+
+## Version 1.1.7
+
+- **Fix filtering of UDP broadcast packets** ([#56](https://github.com/michael-slx/weewx-weatherlink-live/issues/56))
+
+  Instead of filtering based on the IP address of the sender, the driver now filters based on the device ID.
