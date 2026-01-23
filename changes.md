@@ -252,3 +252,9 @@ Driver is now compatible with **Python 3.7 or later**.
 - **Fix filtering of UDP broadcast packets** ([#56](https://github.com/michael-slx/weewx-weatherlink-live/issues/56))
 
   Instead of filtering based on the IP address of the sender, the driver now filters based on the device ID.
+
+## Version 1.1.8
+
+- **Add backwards compatibility for database schema import** ([#58](https://github.com/michael-slx/weewx-weatherlink-live/issues/58))
+
+  Make changes from version 1.1.6 backwards compatible. Thank you [tkeffer](https://github.com/tkeffer).
