@@ -25,7 +25,7 @@ import logging
 from typing import Dict, List, Optional, Union
 
 from user.weatherlink_live.packets import NotInPacket, DavisConditionsPacket
-from user.weatherlink_live.static import PacketSource, targets, labels
+from user.weatherlink_live.static import targets, labels
 from user.weatherlink_live.static.packets import DataStructureType, KEY_TEMPERATURE, KEY_HUMIDITY, KEY_DEW_POINT, \
     KEY_HEAT_INDEX, KEY_WET_BULB, KEY_WIND_DIR, KEY_RAIN_AMOUNT_DAILY, KEY_RAIN_SIZE, KEY_RAIN_RATE, \
     KEY_SOLAR_RADIATION, KEY_UV_INDEX, KEY_WIND_CHILL, KEY_THW_INDEX, KEY_THSW_INDEX, KEY_SOIL_MOISTURE, \
@@ -233,10 +233,6 @@ class WindMapping(AbstractMapping):
         }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
-        if packet.data_source != PacketSource.WEATHER_PUSH:
-            self._log_mapping_notResponsible("Not a broadcast packet")
-            return
-
         target_dir = self.targets['wind_dir']
         target_speed = self.targets['wind_speed']
 
@@ -286,10 +282,6 @@ class RainMapping(AbstractMapping):
         }
 
     def _do_mapping(self, packet: DavisConditionsPacket, record: dict):
-        if packet.data_source != PacketSource.WEATHER_PUSH:
-            self._log_mapping_notResponsible("Not a broadcast packet")
-            return
-
         target_amount = self.targets['amount']
         target_rate = self.targets['rate']
         target_count = self.targets['count']

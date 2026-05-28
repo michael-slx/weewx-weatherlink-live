@@ -84,7 +84,8 @@ class WeatherlinkLiveDriver(AbstractDevice):
                 try:
                     self.scheduler.raise_error()
                     self.poll_host.raise_error()
-                    self.push_host.raise_error()
+                    if self.push_host is not None:
+                        self.push_host.raise_error()
                 except Exception as e:
                     raise WeeWxIOError("Error while receiving or processing packets: %s" % repr(e)) from e
 
@@ -101,7 +102,7 @@ class WeatherlinkLiveDriver(AbstractDevice):
                     emitted_poll_packet = True
                     yield self.poll_host.packets.popleft()
 
-                while self.push_host.packets:
+                while self.push_host is not None and self.push_host.packets:
                     self._log_success("Emitting push (broadcast) packet", level=logging.INFO)
                     self._reset_data_count()
                     emitted_push_packet = True
@@ -126,16 +127,24 @@ class WeatherlinkLiveDriver(AbstractDevice):
             self.data_event,
             self.configuration.socket_timeout
         )
-        self.push_host = data_host.WLLBroadcastHost(
-            self.configuration.host,
-            self.mappers,
-            self.data_event,
-            self.configuration.socket_timeout
-        )
+
+        if self.configuration.http_only:
+            log.info("HTTP-only mode enabled: skipping UDP broadcast receiver")
+            self.push_host = None
+            push_refresh_callback = None
+        else:
+            self.push_host = data_host.WLLBroadcastHost(
+                self.configuration.host,
+                self.mappers,
+                self.data_event,
+                self.configuration.socket_timeout
+            )
+            push_refresh_callback = self.push_host.refresh_broadcast
+
         self.scheduler = scheduler.Scheduler(
             self.configuration.polling_interval,
             self.poll_host.poll,
-            self.push_host.refresh_broadcast,
+            push_refresh_callback,
             self.data_event
         )
 

@@ -6,17 +6,17 @@ Unlike other drivers, mixing many sensors transmitting on any id is fully suppor
 
 Unfortunately the WeatherLink Live currently does not provide a local API to access historic data.
 An API is available for WeatherLink subscribers. This driver does however not support this interface.
-You also need to ensure that the WeatherLink Live is on the same LAN subnet as WeeWX, so that UDP broadcasts can be received.
+By default, the WeatherLink Live needs to be on the same LAN subnet as WeeWX so that UDP broadcasts can be received. If your station is on a different subnet, you can set `http_only = true` in the driver configuration to use only HTTP polling instead of UDP broadcasts.
 
 This driver requires **WeeWX 5**, **Python 3.7** (or later) and the Python **`requests` module**.
 
 ## Contents
 
-- [Contents](#contents)
-- [Documentation](#documentation)
-- [Contribution](#contribution)
-- [Legal](#legal)
-
+- [WeeWX driver for Davis WeatherLink Live](#weewx-driver-for-davis-weatherlink-live)
+  - [Contents](#contents)
+  - [Documentation](#documentation)
+  - [Contribution](#contribution)
+  - [Legal](#legal)
 
 ## Documentation
 
