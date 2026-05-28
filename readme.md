@@ -12,11 +12,11 @@ This driver requires **WeeWX 5**, **Python 3.7** (or later) and the Python **`re
 
 ## Contents
 
-- [Contents](#contents)
-- [Documentation](#documentation)
-- [Contribution](#contribution)
-- [Legal](#legal)
-
+- [WeeWX driver for Davis WeatherLink Live](#weewx-driver-for-davis-weatherlink-live)
+  - [Contents](#contents)
+  - [Documentation](#documentation)
+  - [Contribution](#contribution)
+  - [Legal](#legal)
 
 ## Documentation
 

@@ -40,7 +40,6 @@ This document is a reference for all available configuration options.
     - [Vantage Pro2 Plus with additional anemometer transmitter](#vantage-pro2-plus-with-additional-anemometer-transmitter)
     - [Vantage Pro2 Plus with soil/leaf station](#vantage-pro2-plus-with-soilleaf-station)
 
-
 ## Example configuration
 
 ```ini
@@ -172,8 +171,8 @@ The above example defines 5 mappings:
 1. **Indoor temperature and humidity**: No options necessary because it's an internal sensor.
 2. **Barometer**: No options necessary because it's an internal sensor.
 3. **Thermometer/hygrometer**: Option `1` means transmitter id `1`.
-3. **Rain sensor**: Option `1` means transmitter id `1`.
-3. **Wind sensor**: Option `1` means transmitter id `1`.
+4. **Rain sensor**: Option `1` means transmitter id `1`.
+5. **Wind sensor**: Option `1` means transmitter id `1`.
 
 ### Mappings reference
 
@@ -194,7 +193,6 @@ Maps only the temperature value
 **Temperature sensor with a hygrometer**
 
 Maps temperature, humidity, dew point, heat index and wet bulb.
-
 
 #### Wind
 
