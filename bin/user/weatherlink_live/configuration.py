@@ -26,7 +26,7 @@ from user.weatherlink_live.mappers import TMapping, THMapping, WindMapping, Rain
     THIndoorMapping, BaroMapping, AbstractMapping, BatteryStatusMapping
 from user.weatherlink_live.static import config as static_config
 from user.weatherlink_live.static.config import KEY_DRIVER_POLLING_INTERVAL, KEY_DRIVER_HOST, KEY_DRIVER_MAPPING, \
-    KEY_MAX_NO_DATA_ITERATIONS
+    KEY_MAX_NO_DATA_ITERATIONS, KEY_DRIVER_HTTP_ONLY
 from user.weatherlink_live.utils import to_list
 from weeutil.weeutil import to_bool, to_float, to_int
 
@@ -71,6 +71,8 @@ def create_configuration(config: dict, driver_name: str):
     if max_no_data_iterations < 1:
         raise ValueError("%s has to be at least 1" % KEY_MAX_NO_DATA_ITERATIONS)
 
+    http_only = to_bool(driver_dict.get(KEY_DRIVER_HTTP_ONLY, False))
+
     mapping_list = to_list(driver_dict[KEY_DRIVER_MAPPING])
     mappings = parse_mapping_definitions(mapping_list)
     if len(mappings) < 1:
@@ -89,6 +91,7 @@ def create_configuration(config: dict, driver_name: str):
         mappings=mappings,
         polling_interval=polling_interval,
         max_no_data_iterations=max_no_data_iterations,
+        http_only=http_only,
         log_success=log_success,
         log_error=log_error,
         socket_timeout=socket_timeout
@@ -150,6 +153,7 @@ class Configuration(object):
                  mappings: MappingDefinitionList,
                  polling_interval: float,
                  max_no_data_iterations: int,
+                 http_only: bool,
                  log_success: bool,
                  log_error: bool,
                  socket_timeout: float):
@@ -157,6 +161,7 @@ class Configuration(object):
         self.mappings = mappings
         self.polling_interval = polling_interval
         self.max_no_data_iterations = max_no_data_iterations
+        self.http_only = http_only
 
         self.log_success = log_success
         self.log_error = log_error

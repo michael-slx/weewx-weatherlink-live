@@ -76,8 +76,8 @@ class WeatherLinkLiveInstaller(ExtensionInstaller):
             name='weatherlink-live',
             version="1.1.8",
             description='WeeWX driver for Davis WeatherLink Live.',
-            author="Michael Schantl",
-            author_email="floss@schantl-lx.at",
+            author="Andrea Sessa",
+            author_email="andre9308@hotmail.it",
             files=[
                 ('bin/user', [
                     'bin/user/weatherlink_live_driver.py',

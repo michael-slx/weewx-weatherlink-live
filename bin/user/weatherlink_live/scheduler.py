@@ -44,7 +44,7 @@ class Scheduler(object):
     """Centrally schedule HTTP requests to avoid overloading server"""
 
     def __init__(self, polling_interval: float, poll_callback: Callable[[], None],
-                 push_refresh_callback: Callable[[float], None], data_event: threading.Event):
+                 push_refresh_callback: Optional[Callable[[float], None]], data_event: threading.Event):
 
         self.polling_interval = polling_interval
         if polling_interval < POLL_INTERVAL_MIN:
@@ -60,9 +60,14 @@ class Scheduler(object):
 
         self.error = None
 
-        self._push_refresh_tick_count = floor(PUSH_REFRESH_INTERVAL / self.polling_interval)
-        self._push_refresh_ticks = self._push_refresh_tick_count
-        log.debug("Push refresh will happen every %d scheduler ticks" % self._push_refresh_tick_count)
+        if self._push_refresh_callback is not None:
+            self._push_refresh_tick_count = floor(PUSH_REFRESH_INTERVAL / self.polling_interval)
+            self._push_refresh_ticks = self._push_refresh_tick_count
+            log.debug("Push refresh will happen every %d scheduler ticks" % self._push_refresh_tick_count)
+        else:
+            self._push_refresh_tick_count = 0
+            self._push_refresh_ticks = 0
+            log.info("HTTP-only mode: UDP broadcast refresh disabled")
 
         self._tick_task_id = None
 
@@ -111,14 +116,15 @@ class Scheduler(object):
         log.debug("Notifying poll callback")
         self._poll_callback()
 
-        if self._push_refresh_ticks >= self._push_refresh_tick_count:
+        if self._push_refresh_callback is not None and self._push_refresh_ticks >= self._push_refresh_tick_count:
             log.debug("Notifying push refresh callback")
             self._push_refresh_callback(PUSH_DURATION)
             self._push_refresh_ticks = 0
 
-        self._push_refresh_ticks += 1
-        log.debug(
-            "%d scheduler ticks until next push refresh" % (self._push_refresh_tick_count - self._push_refresh_ticks))
+        if self._push_refresh_callback is not None:
+            self._push_refresh_ticks += 1
+            log.debug(
+                "%d scheduler ticks until next push refresh" % (self._push_refresh_tick_count - self._push_refresh_ticks))
 
     def cancel(self):
         log.debug("Cancelling scheduler")
