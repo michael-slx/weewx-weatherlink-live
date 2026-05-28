@@ -11,6 +11,7 @@ This document is a reference for all available configuration options.
   - [`mapping`](#mapping)
   - [`polling_interval`](#polling_interval)
   - [`max_no_data_iterations`](#max_no_data_iterations)
+  - [`http_only`](#http_only)
   - [`log_success`](#log_success)
   - [`log_failure`](#log_failure)
 - [Defining mappings](#defining-mappings)
@@ -52,6 +53,10 @@ This document is a reference for all available configuration options.
 
     # Mapping of transmitter ids to WeeWX records
     mapping = th:1, rain:1, wind:1, windchill:1, solar:1, uv:1, thw:1, thsw:1:appTemp, th_indoor, baro, battery:1:outTemp:rain:wind
+
+    # Use HTTP polling only (no UDP broadcast). Set to true if the
+    # WeatherLink Live is on a different subnet.
+    #http_only = false
 
     # Whether to log successful operations.  Overrides top-level setting.
     #log_success = False
@@ -102,6 +107,16 @@ The interval in seconds to wait between retrieving a full data update from the W
 Count of iterations without any data to tolerate before raising an error.
 
 The driver checks for the availability of new data at least every 5 seconds. If no data is available for the specified number of iterations, an error is raised.
+
+### `http_only`
+
+**Required:** No<br>
+**Type:** Boolean<br>
+**Default:** `false`
+
+When set to `true`, the driver will only fetch current conditions via the HTTP API (`/v1/current_conditions`) and will not start or listen for UDP broadcasts.
+
+Enable this option if the WeatherLink Live is on a different subnet than the WeeWX server, since UDP broadcasts do not cross subnet boundaries.
 
 ### `log_success`
 
